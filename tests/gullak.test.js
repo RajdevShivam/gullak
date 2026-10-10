@@ -389,3 +389,22 @@ test('stock tips arrive over time: A from Year 1, B from Year 4, C from Year 8; 
   assert.ok(g.me.contrib.hot3 > 0, 'C arrives in Year 8');
   assert.ok(g.canSell('hot2'));
 });
+
+test('money is conserved: each year, net worth moves by cash flows − penalties − tax + market − interest', () => {
+  const profiles = [null, { city: 'mumbai', job: 'startup' }, { city: 'town', job: 'govt' }];
+  for (let seed = 1; seed <= 60; seed++) {
+    const g = G.createGame(seed, { manual: true, profile: profiles[seed % 3] }), rng = G.mulberry32(seed * 7);
+    let prev = 0;
+    while (!g.done) {
+      if (g.pending) g.choose(Math.floor(rng() * g.pending.options.length));
+      while (g.owed() > 0) { const ks = G.KEYS.filter(k => g.canPayWith(k)); if (ks.length && rng() < 0.6) g.payWith(ks[Math.floor(rng() * ks.length)]); else g.payCard(); }
+      if (rng() < 0.3) { const ks = G.KEYS.filter(k => g.canSell(k)); if (ks.length) g.sell(ks[Math.floor(rng() * ks.length)], rng() < 0.5 ? 0.5 : 1); }
+      const a = {}; for (const k of G.KEYS) a[k] = Math.floor(rng() * 10);
+      const rec = g.step(a), l = rec.log;
+      const leak = l.sales.concat(l.sells).reduce((s, x) => s + x.pen + x.tax, 0);
+      const expect = prev + l.income + l.lottery + l.life + l.choice + l.rent - leak + G.KEYS.reduce((s, k) => s + rec.pnl[k], 0) - rec.interest;
+      assert.ok(Math.abs(expect - rec.nwAfter) < 1, `seed ${seed} year ${rec.r + 1}: off by ${expect - rec.nwAfter}`);   // < ₹1: bills under ₹1 count as paid
+      prev = rec.nwAfter;
+    }
+  }
+});
