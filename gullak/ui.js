@@ -83,7 +83,7 @@
   function startGame(name) {
     NAME = (name || '').trim().slice(0, 18) || 'Riya';
     try { localStorage.setItem('gullak-name', NAME); } catch (e) { }
-    G = window.Gullak.createGame(SEED, { name: NAME, manual: true });
+    G = window.Gullak.createGame(SEED, { name: NAME, manual: true, profile: PROFILE });
     shownNW = 0;
     show('play');
     mountPot($('miniPot'), 0);
@@ -308,6 +308,7 @@
     const ch0 = G.choices.find(c => c.r === G.round);
     h += `<div class="ledger">`;
     h += `<div class="line"><span>Salary savings this year</span><b>${l.income ? inr(l.income) : '₹0 <small>(no job)</small>'}</b></div>`;
+    if (l.rent) h += `<div class="line"><span>Rent in ${esc(s.profile.city.n)}</span><b class="negc">−${inr(-l.rent)}</b></div>`;
     if (l.lottery) h += `<div class="line"><span>Lottery prize, after 31.2% tax</span><b class="pos">+${inr(l.lottery)}</b></div>`;
     if (l.life) h += `<div class="line"><span>${esc(s.life.t)}</span><b class="${l.life < 0 ? 'negc' : 'pos'}">${l.life < 0 ? '−' : '+'}${inr(Math.abs(l.life))}</b></div>`;
     if (ch0 && l.choice) h += `<div class="line"><span>${esc(ch0.t)}</span><b class="${l.choice < 0 ? 'negc' : 'pos'}">${l.choice < 0 ? '−' : '+'}${inr(Math.abs(l.choice))}</b></div>`;
@@ -603,6 +604,12 @@
   // ---------- Boot ----------
   mountPot($('heroPot'), 2.5e6);
   try { const saved = localStorage.getItem('gullak-name'); if (saved) $('nameIn').value = saved; } catch (e) { }
+  const PROFILE = { city: 'bengaluru', job: 'it' };
+  for (const g of document.querySelectorAll('.pick')) g.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    for (const x of g.children) x.classList.toggle('on', x === b);
+    PROFILE[g.dataset.k] = b.dataset.v;
+  };
   $('nameForm').onsubmit = e => { e.preventDefault(); startGame($('nameIn').value); };
   $('again').onclick = () => { location.href = location.pathname + '?seed=' + Math.floor(Math.random() * 1e9); };
   $('copySeed').onclick = () => {

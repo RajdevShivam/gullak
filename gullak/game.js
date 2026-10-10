@@ -139,25 +139,51 @@
         { label: 'Help none of them', x: 0, note: 'The family WhatsApp group goes quiet whenever {n} posts.' } ] },
   ];
 
+  // Player profile (optional). City: bigger pay, bigger rent (yearly, rises RENT_HIKE a year). Job: starting savings and raises.
+  const RENT_HIKE = 0.1;
+  const CITIES = {
+    mumbai: { n: 'Mumbai', pay: 1.3, rent: 36000, line: 'The Mumbai landlord wants eleven months’ rent as deposit, and a promise of “no non-veg”.' },
+    bengaluru: { n: 'Bengaluru', pay: 1.25, rent: 30000, line: 'The Bengaluru landlord raises the rent again, citing “the metro is coming”.' },
+    delhi: { n: 'Delhi', pay: 1.2, rent: 24000, line: 'The Delhi PG aunty serves rajma every Monday and raises the rent every April.' },
+    town: { n: 'a small town', pay: 1, rent: 0, line: 'Living at home means no rent, and Mummy knowing exactly what time {n} gets in.' },
+  };
+  const JOBS = {
+    it: { n: 'starts an IT job', income: 120000, raise: RAISE },
+    govt: { n: 'starts a government job', income: 90000, raise: 0.07, safe: 1 },
+    startup: { n: 'joins a startup', income: 150000, raise: 0.1 },
+    family: { n: 'joins the family business', income: 110000, raise: RAISE },
+  };
+  // Personal beats in the quiet years (rounds 1–2 and 15–19). x = multiple of this year's salary savings.
+  const BEATS = [
+    { id: 'goldfund', at: [1, 2], beat: 1, t: 'Mummy’s gold fund', e: '', x: -0.4, s: 'Mummy has started buying gold “for {n}’s wedding”, one bangle at a time. {n} is asked to chip in.' },
+    { id: 'deposit', at: [1, 2], beat: 1, t: 'A new flat, a new deposit', e: '', x: -0.3, s: 'The flatmate moves out. {n} pays the deposit on a new place and buys a fridge off OLX.' },
+    { id: 'school', at: [15, 16, 17], beat: 1, t: 'School admission fees', e: '', x: -0.7, s: 'The little one starts school. The “building fund” alone costs more than {n}’s first bike.' },
+    { id: 'retire', at: [17, 18, 19], beat: 1, t: 'Papa retires', e: '', x: -0.5, s: 'Papa retires with a shawl, a cake and no pension. {n} quietly starts sending money home every month.' },
+  ];
+  const FOLD = { id: 'fold', beat: 1, laid: 1, t: 'The startup shuts down', e: '', x: -0.25, s: 'The startup runs out of money. The founders post “an incredible journey” on LinkedIn. {n} has no salary this year.' };
+
   // ---------- Schedule (all randomness decided up front from the seed) ----------
-  function buildSchedule(seed) {
+  function buildSchedule(seed, profile) {
     const rng = makeRng(seed >>> 0);
-    const out = []; let base = START_INCOME; const recent = [];
+    const city = profile && CITIES[profile.city], job = profile && JOBS[profile.job];
+    const raise = job ? job.raise : RAISE;
+    const out = []; let base = job ? job.income * (city ? city.pay : 1) : START_INCOME; const recent = [];
     for (let r = 0; r < R; r++) {
       const y = START_YEAR + r;
-      if (r > 0) base *= 1 + RAISE;
+      if (r > 0) base *= 1 + raise;
       const nifty = NIFTY[y] / 100, gold = GOLD[y] / 100;
       rng.gauss();   // keep the seeded stream identical to earlier versions
       const hot = STOCKS.hot.r[y] / 100, hot2 = STOCKS.hot2.r[y] / 100, hot3 = STOCKS.hot3.r[y] / 100;
       const crypto = 0;   // the Rollercoaster was removed from the game
       const roll = rng(), pick = Math.floor(rng() * LIFE.length);
       let life = null;
-      if (r > 0 && roll < 0.35) { const c = LIFE[pick]; if (!recent.slice(-3).includes(c.id)) life = c; }
+      if (r > 0 && roll < 0.35) { const c = LIFE[pick]; if (!recent.slice(-3).includes(c.id) && !(c.laid && job && job.safe)) life = c; }
       recent.push(life ? life.id : null);
       const inc = base;
       if (life && life.promo) base *= 1 + PROMO;
       out.push({ r, y, age: START_AGE + r, news: NEWS[y], event: EVENT_YEARS.includes(y), life, inc: life && life.promo ? base : inc,
         ret: { sav: SAFE_RET.sav, fd: SAFE_RET.fd, ppf: SAFE_RET.ppf, nifty, gold, hot, hot2, hot3, crypto } });
+      if (city) Object.assign(out[r], { rent: city.rent * Math.pow(1 + RENT_HIKE, r), profile: { city, job } });
     }
     const drng = makeRng((seed ^ 0x9e3779b9) >>> 0);   // separate stream so market/life rolls stay unchanged
     for (const d of DILEMMAS) {
@@ -177,6 +203,15 @@
       if (out[r].life && !out[r].life.promo) out[r].life = null;
       r++;
     }
+    if (city && job) {   // personal beats: a third stream, so nothing above changes
+      const prng = makeRng((seed ^ 0x51ed270b) >>> 0);
+      const place = (b, at) => {
+        const free = out.filter(s => at.includes(s.r) && !s.choice && !s.lottery && !(s.life && s.life.beat));
+        if (free.length) free[Math.floor(prng() * free.length)].life = b;
+      };
+      for (const b of BEATS) place(b, b.at);
+      if (job === JOBS.startup) place(FOLD, [3, 4, 5, 6, 7, 8]);
+    }
     return out;
   }
 
@@ -191,13 +226,14 @@
 
   // fund: how a shortfall is covered. 'sell' (default) force-sells investments; 'card' puts it all on the credit card.
   function beginRound(p, s, choiceX, fund) {
-    const log = { income: 0, life: 0, choice: 0, debtPaid: 0, sales: [], newDebt: 0, sells: [] };
+    const log = { income: 0, life: 0, choice: 0, rent: 0, debtPaid: 0, sales: [], newDebt: 0, sells: [] };
     log.income = (s.life && s.life.laid ? 0 : s.inc) * p.incMult;
     if (p.incMult < 1 && !(s.life && s.life.laid)) p.stats.creepLost += s.inc * (1 - p.incMult);
     log.lottery = s.lottery && p.lucky ? s.lottery.net : 0;
     log.life = s.life ? s.life.x * s.inc : 0;
     log.choice = (choiceX || 0) * ((s.choice && s.choice.base) || s.inc);
-    let cash = log.income + log.lottery + log.life + log.choice;
+    log.rent = -(s.rent || 0);
+    let cash = log.income + log.lottery + log.life + log.choice + log.rent;
     if (cash > 0 && p.debt > 0) { const pay = Math.min(cash, p.debt); p.debt -= pay; cash -= pay; log.debtPaid = pay; }
     if (cash < 0 && fund === 'card') {
       p.debt += -cash; log.newDebt = -cash; log.onCard = true; p.stats.cardYears++; cash = 0;
@@ -256,9 +292,10 @@
   // ---------- Game ----------
   function createGame(seed, opts) {
     seed = (Number.isFinite(+seed) ? +seed : Math.floor(Math.random() * 1e9)) >>> 0;
-    const sched = buildSchedule(seed);
+    const profile = opts && opts.profile && CITIES[opts.profile.city] && JOBS[opts.profile.job] ? opts.profile : null;
+    const sched = buildSchedule(seed, profile);
     const G = {
-      seed, sched, R, round: 0, done: false,
+      seed, sched, R, round: 0, done: false, profile,
       name: (opts && opts.name) || 'Riya',
       me: Object.assign(newPlayer(), { lucky: true }), fd: newPlayer(), sip: newPlayer(),
       manual: !!(opts && opts.manual),   // UI mode: shortfalls wait for the player to choose what to sell
@@ -278,7 +315,7 @@
       if (!o) return null;
       const income = (s.life && s.life.laid ? 0 : s.inc) * G.me.incMult, life = s.life ? s.life.x * s.inc : 0;
       const cost = -o.x * (G.pending.base || s.inc);
-      return { cost, shortfall: Math.max(0, cost - income - life), creep: o.creep || 0 };
+      return { cost, shortfall: Math.max(0, cost - income - life + (s.rent || 0)), creep: o.creep || 0 };
     };
     G.choose = function (i, fund) {
       const d = G.pending, o = d && d.options[i];
@@ -371,6 +408,8 @@
   const fill = (t, name) => t.replace(/\{n\}/g, name);
   function chapter(s, name) {
     const parts = [fill(s.news[1], name)];
+    if (s.profile && s.r === 0) parts.push(`${name} ${s.profile.job.n} in ${s.profile.city.n}.`);
+    if (s.profile && (s.r === 0 || s.r === 9)) parts.push(fill(s.profile.city.line, name));
     if (s.lottery) parts.push(`${name}’s Diwali bumper lottery ticket WINS ${inr(s.lottery.gross)}! The tax department takes 31.2% before anyone else can, leaving ${inr(s.lottery.net)}. Then ${name}’s phone starts ringing.`);
     if (s.choice) parts.push(fill(s.choice.s, name));
     if (s.life) parts.push(fill(s.life.s, name));
@@ -487,7 +526,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { FD_PENALTY, GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
+  const api = { FD_PENALTY, GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, CITIES, JOBS, BEATS, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;

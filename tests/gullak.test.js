@@ -317,3 +317,60 @@ test('selling at a profit pays 10% tax on the profit; FD/PPF/savings and losses 
   const y = g.sell('fd', 1);
   assert.strictEqual(y.tax, 0);
 });
+
+// ---------- Player profile (city + first job) ----------
+const ME = { city: 'mumbai', job: 'it' };
+
+test('profile: the first job sets the starting salary savings; no profile keeps the old numbers', () => {
+  assert.strictEqual(G.createGame(42).sched[0].inc, G.START_INCOME);
+  const inc = job => G.createGame(42, { profile: { city: 'town', job } }).sched[0].inc;
+  assert.strictEqual(inc('govt'), G.JOBS.govt.income);
+  assert.ok(inc('startup') > inc('it') && inc('it') > inc('govt'));
+  assert.ok(G.createGame(42, { profile: ME }).sched[0].inc > inc('it'), 'big-city pay is higher');
+});
+
+test('profile: rent is deducted every year, for rivals too; small town pays none', () => {
+  const g = G.createGame(42, { profile: ME });
+  const s = g.sched[0];
+  assert.ok(s.rent > 0);
+  assert.ok(Math.abs(g.me.log.rent + s.rent) < 1e-6);
+  assert.ok(Math.abs(g.me.cash - (s.inc - s.rent)) < 1e-6);
+  assert.ok(Math.abs(g.sip.log.rent + s.rent) < 1e-6);
+  assert.ok(g.sched[10].rent > s.rent, 'rent goes up over the years');
+  assert.strictEqual(G.createGame(42, { profile: { city: 'town', job: 'it' } }).sched[0].rent, 0);
+  assert.ok(!G.createGame(42).sched[0].rent, 'no profile, no rent');
+});
+
+test('profile: personal beats land in the quiet years, never on a decision or lottery year', () => {
+  for (const seed of [1, 7, 42, 777]) {
+    const g = G.createGame(seed, { profile: ME });
+    const beats = g.sched.filter(s => s.life && s.life.beat);
+    assert.ok(beats.length >= 4, 'seed ' + seed + ': ' + beats.length);
+    for (const s of beats) {
+      assert.ok(s.r <= 2 || s.r >= 15, 'beat at round ' + s.r);
+      assert.ok(!s.choice && !s.lottery);
+    }
+    assert.ok(!G.createGame(seed).sched.some(s => s.life && s.life.beat), 'no profile, no beats');
+  }
+});
+
+test('profile: govt jobs are never laid off; a startup folds once, early', () => {
+  for (const seed of [1, 7, 42, 777, 5, 9]) {
+    assert.ok(!G.createGame(seed, { profile: { city: 'delhi', job: 'govt' } }).sched.some(s => s.life && s.life.laid));
+    const laid = G.createGame(seed, { profile: { city: 'delhi', job: 'startup' } }).sched.filter(s => s.life && s.life.laid && s.life.beat);
+    assert.strictEqual(laid.length, 1, 'seed ' + seed);
+    assert.ok(laid[0].r >= 3 && laid[0].r <= 8);
+  }
+});
+
+test('profile copy never reveals years or says crypto', () => {
+  const texts = [];
+  for (const city of Object.keys(G.CITIES)) for (const job of Object.keys(G.JOBS)) {
+    const g = G.createGame(3, { profile: { city, job } });
+    for (const s of g.sched) { const c = G.chapter(s, 'Riya'); texts.push(c.sub, c.text); if (s.life) texts.push(s.life.t); }
+  }
+  for (const t of texts) {
+    assert.ok(!/\b(19|20)\d\d\b/.test(t), 'year leaked: ' + t);
+    assert.ok(!/crypto|bitcoin|undefined/i.test(t), 'bad word: ' + t);
+  }
+});
