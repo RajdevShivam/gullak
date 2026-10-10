@@ -308,7 +308,9 @@
       p.contrib[k] *= 1 - amt / p.h[k];
       p.h[k] = frac >= 1 ? 0 : p.h[k] - amt;
       p.cash += proceeds; p.stats.penalty += pen; p.stats.chosenSold += amt;
-      const x = { k, amt, pen, proceeds }; p.log.sells.push(x);
+      const repay = Math.min(p.cash, p.debt);   // selling clears the 36% card before anything is reinvested
+      p.debt -= repay; p.cash -= repay;
+      const x = { k, amt, pen, proceeds, repay }; p.log.sells.push(x);
       return x;
     };
     G.takeaways = () => takeaways(G);
@@ -351,12 +353,12 @@
       out.push({ id: 'worst', icon: '☀️', impact: 1, title: 'Never a losing year', text: `${name}’s gullak never shrank from markets in a single year. Very calm — maybe a little too calm?` });
     }
     // 2. Emergency fund
-    const st = me.stats, cost = st.penalty + st.interest;
+    const st = me.stats, cost = st.penalty + (st.interest > 10000 ? 0 : st.interest);   // big interest gets its own takeaway
     if (st.forcedYears > 0) {
       out.push({ id: 'emergency', icon: '🧯', impact: cost + 0.25 * st.soldRisky,
         title: 'Keep an emergency fund',
         text: `Life forced ${name} to sell ${inr(st.sold)} of investments in ${st.forcedYears} year${st.forcedYears > 1 ? 's' : ''}` +
-          (cost > 1 ? `, costing ${inr(cost)} in FD penalties and credit-card interest.` : '.') +
+          (cost > 1 ? `, costing ${inr(cost)} in penalties${st.interest > 10000 ? '' : ' and credit-card interest'}.` : '.') +
           ` A few months of expenses kept in Savings/FD means emergencies don’t get to choose when you sell.` });
     } else {
       out.push({ id: 'emergency', icon: '🧯', impact: 0.5, title: 'No forced sales', text: `${name} never had to sell in a hurry. A cushion in Savings or FD is what makes that possible.` });

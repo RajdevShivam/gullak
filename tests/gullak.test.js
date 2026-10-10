@@ -263,3 +263,14 @@ test('lottery asks cost a share of the prize; lifestyle creep cuts savings for g
   const h = G.createGame(42); while (!h.done) h.step({ sav: 1 });
   assert.ok(h.choices.some(c => c.lotto));
 });
+
+test('selling pays off credit-card debt before reinvesting', () => {
+  const g = G.createGame(42);
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ nifty: 1 });
+  g.choose(0, 'card');
+  const debt = g.me.debt, cash = g.me.cash, nifty = g.me.h.nifty;
+  const x = g.sell('nifty', 1);
+  assert.ok(Math.abs(x.repay - Math.min(debt, cash + nifty)) < 1e-6);
+  assert.ok(Math.abs(g.me.debt - Math.max(0, debt - cash - nifty)) < 1e-6);
+});

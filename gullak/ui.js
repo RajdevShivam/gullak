@@ -245,6 +245,7 @@
         : `<p>Without enough cushion in Savings or FD, ${esc(NAME)} had to sell investments — whatever the market was doing.</p></div>`;
     }
     for (const x of l.sells) h += `<div class="line"><span>You sold ${A(x.k).n}</span><b class="pos">+${inr(x.proceeds)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</b></div>`;
+    for (const x of l.sells) if (x.repay > 0.5) h += `<div class="line"><span>Used to clear the credit card</span><b class="negc">−${inr(x.repay)}</b></div>`;
     h += `<div class="line total"><span>Ready for the gullak</span><span>${inr(G.me.cash)}</span></div></div>`;
     }
     const rec = records();
