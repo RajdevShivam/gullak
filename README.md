@@ -10,7 +10,7 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
 
 ## How it plays
 
-- **20 chapters (Year 1 to Year 20):** split each year's savings across 7 options:
+- **20 chapters (Year 1 to Year 20):** split each year's savings across 6 options:
 
   | Option | What it is |
   |---|---|
@@ -20,10 +20,12 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
   | Nifty 50 index fund | Follows the market |
   | Gold | Tends to rise in a crisis |
   | Hot stock tips | Risky |
-  | Rollercoaster 🎢 | A new, extremely volatile investment that unlocks partway through |
 
 - **Real history, in disguise:** the markets follow what actually happened in India from 2005 to 2024, using approximate real yearly returns. The news cards hint at events without naming them, and the end screen reveals which 20 years you just lived.
 - **Life events and the emergency-fund lesson:** if you can't cover an expense, you're forced to sell investments, at a loss if the timing is bad. If that's not enough, the rest goes on a credit card at 18%.
+- **Family decisions you can't dodge:** your own wedding (big fat, respectable or court marriage), the car, your sister's wedding, Papa's surgery. If you can't afford it, choose: sell investments, or swipe the credit card at 36% a year.
+- **The lottery:** you win the Diwali bumper, minus 31.2% tax. Then Mama-ji's business idea, forty new cousins, and a lifestyle upgrade that eats your savings forever arrive.
+- **Fear and greed:** Sharma-ji (15 years in the market), Arvind on TV, Kavya the full-time trader and WhatsApp-forward hot tips all comment on the asset you're looking at. They're timed against real history, so the panic calls land before rebounds.
 - **⏩ Fast-forward:** skip up to 5 years with a recap. It stops before big market events so you can react.
 - **Same seed, same 20 years:** add `?seed=42` to the URL so friends play the identical game.
 
@@ -45,7 +47,7 @@ node --test tests/
 
 ## Data note
 
-Market returns are approximate calendar-year figures for Nifty 50 (price), gold in INR and Bitcoin in INR (the "Rollercoaster"). This is an educational game, not financial advice.
+Market returns are approximate calendar-year figures for Nifty 50 (price), gold in INR. This is an educational game, not financial advice.
 
 ## Built at
 
