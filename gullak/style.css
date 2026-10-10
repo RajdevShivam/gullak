@@ -392,3 +392,5 @@ body.ouch::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3
 .clock.movec{font:500 13px var(--mono);color:var(--mut);margin:0 0 10px;padding:6px 10px;border:1px dashed var(--hair);border-radius:4px}
 .clock.movec b{color:#9F2F2D;font-size:16px}
 .clock.movec.hurry{color:#9F2F2D;border-color:#9F2F2D}
+.story.nocap::first-letter{font:inherit;float:none;margin:0;color:inherit}
+.podnote{grid-column:1/-1;text-align:center;font:italic 400 16px var(--serif);color:var(--mut);margin:10px auto 0;max-width:60ch}

@@ -124,7 +124,7 @@
       return `<div class="payrow${locked ? ' locked' : ''}"><div class="pr-name"><span class="code">${CODE[k]}</span><b>${esc(a.n)}</b>
           <small>worth ${inr(h)} · you put in ${inr(p.contrib[k])}</small></div>
         <div class="pr-hit">${locked ? '<span class="mut">Locked until Year 16</span>'
-          : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>${tax > 0.5 ? `<small class="negc">…and pays ${inr(tax)} tax on it</small>` : ''}` : '<span class="mut">No gain, no loss</span>'}
+          : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>${tax > 0.5 ? `<small class="negc">…and pays ${inr(tax)} tax on it, so a small amount may still be due</small>` : ''}` : '<span class="mut">No gain, no loss</span>'}
           ${k === 'fd' && !locked ? '<small>10% penalty for breaking it early</small>' : ''}${sell >= h - 0.5 && !locked ? '<small>This empties it</small>' : ''}</div>
         <button class="btn sell" data-pay="${k}" ${locked ? 'disabled' : ''}>Sell ${inr(sell)}</button></div>`;
     }).join('');
@@ -294,7 +294,7 @@
 
   function renderPage() {
     const s = G.current(), ch = chapter(s, NAME), l = G.me.log;
-    let h = `<div class="kicker">${ch.title}</div><h2>${esc(ch.sub)}</h2><p class="story">${esc(ch.text)}</p><div class="notes">`;
+    let h = `<div class="kicker">${ch.title}</div><h2>${esc(ch.sub)}</h2><p class="story${/^\S\s/.test(ch.text) ? ' nocap' : ''}">${esc(ch.text)}</p><div class="notes">`;
     h += `<div class="note"><div><span class="tag news">In the news</span>${s.event ? '<span class="tag big">Big market year</span>' : ''}<b>${esc(s.news[0])}</b></div></div>`;
     for (const k of TIP_KEYS) if (UNLOCK[k] === s.r) h += `<div class="note"><div><span class="tag big">New tip</span><b>${NAME_OF[k]} just landed in the family WhatsApp group</b></div></div>`;
     if (s.lottery) {
@@ -358,7 +358,7 @@
       $('jars').className = 'jars' + (first ? ' coach' : '');
       const vs = voices(), lastH = G.history[G.history.length - 1];
       $('jars').innerHTML = verdict + (first ? `<div class="coachtip">Slide to split this year’s ${inr(cash)} between the jars. Then drop it in the gullak.</div>` : '') +
-        `<h3>Where does ${inr(cash)} go?</h3><p class="sub">This year’s savings${G.me.log.sells.length ? ' plus what you sold' : ''}. Nervous — or greedy? You can sell from a jar to move money around.</p>` +
+        `<h3>Where does ${inr(cash)} go?</h3><p class="sub">This year’s savings${G.me.log.sells.length ? ' plus what you sold' : ''}. The sliders split only this new money; what’s already in each jar stays put. Nervous — or greedy? Sell from a jar to move money around.</p>` +
         `<div class="mixbar" id="mixbar"></div><div class="sumhint" id="sumhint"></div>` +
         ASSETS.map(a => {
           const on = enabled(a.k, r), hold = G.me.h[a.k], last = G.history[G.history.length - 1];
@@ -373,7 +373,7 @@
             if (tipKey(r) === a.k) notes += tipSlip(r);
           }
           notes += vs.filter(q => q.k === a.k).map(quoteHTML).join('');
-          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>10% penalty</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
+          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>10% penalty</small>' : ''}${G.me.log.sells.some(x => x.k === a.k) && (G.alloc[a.k] || 0) > 0 ? '<small class="negc">Set this jar’s share to 0% if you don’t want to buy it again.</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
           return `<div class="asset ${on ? '' : 'off'}"><div class="ico" aria-hidden="true">${CODE[a.k]}</div>
             <div><div class="nm" title="${esc(a.f)}">${a.n} ${lock}</div><div class="why">${esc(a.f)}</div></div>
             <div><div class="amt" id="amt-${a.k}">—</div><div class="hold">has ${inr(hold)}</div></div>
@@ -598,6 +598,7 @@
       : rank === 2 ? `Out spills ${inr(nw.me)}. One relative beaten, one to go — Diwali dinner will be lively.`
       : `Out spills ${inr(nw.me)}. Even FD Uncle did better… he will mention this at every family dinner.`;
     $('podium').innerHTML = res.map((x, i) => `<div class="pod ${x.me ? 'me' + (i === 0 ? ' win' : '') : ''}"><div class="rk">${['1st', '2nd', '3rd'][i]}</div><div class="who">${esc(x.n)}</div><b class="${x.v < 0 ? 'negc' : ''}">${inr(x.v)}</b></div>`).join('');
+    $('podium').insertAdjacentHTML('beforeend', `<p class="podnote">Balances reflect luck, life expenses and investing choices. ${esc(NAME)}’s gullak also paid for a life: a smaller balance doesn’t mean a worse one.</p>`);
     $('takeaways').innerHTML = G.takeaways().map((t, i) => `<div class="tk" style="animation-delay:${1.8 + i * 0.2}s"><div class="em">${['i.', 'ii.', 'iii.'][i] || ''}</div><h4>${esc(t.title)}</h4><p>${esc(t.text)}</p></div>`).join('');
     const tot = KEYS.reduce((a, k) => a + G.me.h[k], 0) || 1;
     $('finalAlloc').innerHTML = ASSETS.filter(a => G.me.h[a.k] > 0.5).map(a => `<div class="line"><span>${a.n}</span><span><b>${inr(G.me.h[a.k])}</b> · ${(G.me.h[a.k] / tot * 100).toFixed(0)}%</span></div>`).join('') +
