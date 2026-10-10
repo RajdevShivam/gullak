@@ -1,7 +1,7 @@
 // Gullak — DOM, rendering and animation. All game rules live in game.js.
 (function () {
   'use strict';
-  const { ASSETS, KEYS, inr, chapter, enabled, R, CRYPTO_R, PPF_R } = window.Gullak;
+  const { ASSETS, KEYS, inr, chapter, enabled, R, CRYPTO_R, PPF_R, UNLOCK } = window.Gullak;
   const $ = id => document.getElementById(id);
   const A = k => ASSETS.find(a => a.k === k);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -280,7 +280,7 @@
       { from: 500, to: 3000, t: 'Boring company, crazy growth. Uncle has held since the start. Don’t sell ever!!!' },
       { from: 900, to: 5000, t: 'Still cheap for what it is. Long term only. Forward to your children!!' } ],
   };
-  const tipKey = r => TIP_KEYS[(G.seed + r) % 3];   // this year's WhatsApp forward is about one of the three
+  const tipKey = r => { const on = TIP_KEYS.filter(k => enabled(k, r)); return r === UNLOCK.hot2 ? 'hot2' : r === UNLOCK.hot3 ? 'hot3' : on[(G.seed + r) % on.length]; };   // this year's WhatsApp forward: a newly arrived tip, else one of those on offer
   const FWD = '<svg viewBox="0 0 16 12" width="14" height="11" aria-hidden="true"><path d="M9 1l5 4.5L9 10M14 5.5H6C3.5 5.5 2 7 2 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function tipSlip(r) {
     const k = tipKey(r), pool = TIPS_BY[k], t = pool[(G.seed + r) % pool.length], nm = NAME_OF[k];
@@ -296,6 +296,7 @@
     const s = G.current(), ch = chapter(s, NAME), l = G.me.log;
     let h = `<div class="kicker">${ch.title}</div><h2>${esc(ch.sub)}</h2><p class="story">${esc(ch.text)}</p><div class="notes">`;
     h += `<div class="note"><div><span class="tag news">In the news</span>${s.event ? '<span class="tag big">Big market year</span>' : ''}<b>${esc(s.news[0])}</b></div></div>`;
+    for (const k of TIP_KEYS) if (UNLOCK[k] === s.r) h += `<div class="note"><div><span class="tag big">New tip</span><b>${NAME_OF[k]} just landed in the family WhatsApp group</b></div></div>`;
     if (s.lottery) {
       h += `<div class="note lotto"><div><span class="tag big">Jackpot</span><b>Diwali bumper lottery: you won</b></div>` +
         `<span class="amt pos">+${inr(s.lottery.net)}</span></div>`;
@@ -361,7 +362,7 @@
         `<div class="mixbar" id="mixbar"></div><div class="sumhint" id="sumhint"></div>` +
         ASSETS.map(a => {
           const on = enabled(a.k, r), hold = G.me.h[a.k], last = G.history[G.history.length - 1];
-          const lock = !on ? `<span class="lock">unlocks Year 10</span>` : a.k === 'ppf' ? `<span class="lock">${r >= PPF_R ? 'unlocked' : 'locked till Year 16'}</span>` : '';
+          const lock = !on ? `<span class="lock">arrives Year ${(UNLOCK[a.k] || CRYPTO_R) + 1}</span>` : a.k === 'ppf' ? `<span class="lock">${r >= PPF_R ? 'unlocked' : 'locked till Year 16'}</span>` : '';
           const overall = hold - G.me.contrib[a.k];
           const held = hold > 0.5 || Math.abs(G.me.contrib[a.k]) > 0.5;
           const perf = last && enabled(a.k, last.r) ? `<div class="perf ${held && last.pnl[a.k] < -0.5 ? 'hit' : held && last.pnl[a.k] > 0.5 && last.ret[a.k] >= 0.25 ? 'win' : ''}">${retChip(a.k, last.ret[a.k])}` +

@@ -215,7 +215,9 @@
     return out;
   }
 
-  const enabled = (k, r) => !(k === 'crypto' && r < CRYPTO_R);
+  // New stock tips arrive in the family WhatsApp group over the years (round index: Year 4, Year 8). Held tips stay sellable.
+  const UNLOCK = { hot2: 3, hot3: 7 };
+  const enabled = (k, r) => !(k === 'crypto' && r < CRYPTO_R) && !(r < (UNLOCK[k] || 0));
   const emptyH = () => ({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, hot2: 0, hot3: 0, crypto: 0 });
   function newPlayer() {
     return { h: emptyH(), contrib: emptyH(), debt: 0, cash: 0, nwHist: [], log: null,
@@ -526,7 +528,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { FD_PENALTY, GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, CITIES, JOBS, BEATS, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
+  const api = { FD_PENALTY, GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, UNLOCK, CITIES, JOBS, BEATS, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;

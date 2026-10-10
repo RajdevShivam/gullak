@@ -374,3 +374,18 @@ test('profile copy never reveals years or says crypto', () => {
     assert.ok(!/crypto|bitcoin|undefined/i.test(t), 'bad word: ' + t);
   }
 });
+
+test('stock tips arrive over time: A from Year 1, B from Year 4, C from Year 8; held tips stay sellable', () => {
+  assert.deepStrictEqual(['hot', 'hot2', 'hot3'].map(k => G.UNLOCK[k] || 0), [0, 3, 7]);
+  const g = G.createGame(5);
+  for (const s of g.sched) { s.life = null; s.choice = null; s.lottery = null; }
+  g.step({ hot: 1, hot2: 1, hot3: 1 });
+  assert.ok(g.me.h.hot > 0 && g.me.contrib.hot2 === 0 && g.me.contrib.hot3 === 0, 'B and C not on offer yet');
+  while (g.round < 3) g.step({ hot2: 1, hot3: 1 });
+  g.step({ hot2: 1, hot3: 1 });
+  assert.ok(g.me.contrib.hot2 > 0 && g.me.contrib.hot3 === 0, 'B arrives in Year 4');
+  while (g.round < 7) g.step({ hot3: 1 });
+  g.step({ hot3: 1 });
+  assert.ok(g.me.contrib.hot3 > 0, 'C arrives in Year 8');
+  assert.ok(g.canSell('hot2'));
+});
