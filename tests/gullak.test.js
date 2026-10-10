@@ -128,11 +128,11 @@ test('selling: proceeds join the cash pool, FD pays 1%, PPF locked until it unlo
   const cash0 = g.me.cash, nifty0 = g.me.h.nifty, fd0 = g.me.h.fd;
   const x = g.sell('nifty', 0.5);
   assert.ok(Math.abs(x.amt - nifty0 / 2) < 1e-6 && x.pen === 0);
-  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2)) < 1e-6);
+  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 - x.tax)) < 1e-6);   // minus 10% tax on the profit part
   const y = g.sell('fd', 1);
   assert.ok(Math.abs(y.pen - fd0 * 0.01) < 1e-6);
   assert.strictEqual(g.me.h.fd, 0);
-  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 + fd0 * 0.99)) < 1e-6);
+  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 - x.tax + fd0 * 0.99)) < 1e-6);
   assert.strictEqual(g.sell('ppf', 1), null, 'PPF is locked');
   assert.strictEqual(g.canSell('crypto'), false);
   const before = g.me.cash;
@@ -305,4 +305,15 @@ test('manual mode: step covers an unpaid bill the old way, and PPF stays locked'
   g.step({ sav: 1 });
   assert.strictEqual(g.owed(), 0);
   assert.ok(g.history[g.history.length - 1].log.sales.length > 0 || g.history[g.history.length - 1].log.newDebt > 0);
+});
+
+test('selling at a profit pays 10% tax on the profit; FD/PPF/savings and losses do not', () => {
+  const g = G.createGame(3);
+  g.step({ nifty: 1, fd: 1 });   // 2005: Nifty +36%
+  const h = g.me.h.nifty, basis = g.me.contrib.nifty, cash0 = g.me.cash;
+  const x = g.sell('nifty', 1);
+  assert.ok(Math.abs(x.tax - (h - basis) * 0.10) < 1e-6 && x.tax > 0);
+  assert.ok(Math.abs(g.me.cash - cash0 - (h - x.tax)) < 1e-6);
+  const y = g.sell('fd', 1);
+  assert.strictEqual(y.tax, 0);
 });

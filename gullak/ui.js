@@ -108,10 +108,11 @@
     const rows = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => {
       const k = a.k, h = p.h[k], mult = k === 'fd' ? 0.99 : 1, sell = Math.min(h, owe / mult);
       const pnl = sell - p.contrib[k] * sell / h, locked = !G.canPayWith(k);
+      const tax = window.Gullak.TAXED.includes(k) && pnl > 0 ? pnl * window.Gullak.GAINS_TAX : 0;
       return `<div class="payrow${locked ? ' locked' : ''}"><div class="pr-name"><span class="code">${CODE[k]}</span><b>${esc(a.n)}</b>
           <small>worth ${inr(h)} · you put in ${inr(p.contrib[k])}</small></div>
         <div class="pr-hit">${locked ? '<span class="mut">Locked until Year 16</span>'
-          : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>` : '<span class="mut">No gain, no loss</span>'}
+          : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>${tax > 0.5 ? `<small class="negc">…and pays ${inr(tax)} tax on it</small>` : ''}` : '<span class="mut">No gain, no loss</span>'}
           ${k === 'fd' && !locked ? '<small>1% penalty for breaking it</small>' : ''}${sell >= h - 0.5 && !locked ? '<small>This empties it</small>' : ''}</div>
         <button class="btn sell" data-pay="${k}" ${locked ? 'disabled' : ''}>Sell ${inr(sell)}</button></div>`;
     }).join('');
@@ -127,7 +128,7 @@
     $('payupSheet').querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const x = G.payWith(b.dataset.pay); if (!x) return;
       sad();
-      const msg = `Sold ${inr(x.amt)} of ${A(x.k).n}` + (x.pnl < -0.5 ? ` and locked in a <b class="negc">${inr(-x.pnl)}</b> loss.` : x.pnl > 0.5 ? `, ${inr(x.pnl)} of it profit.` : '.');
+      const msg = `Sold ${inr(x.amt)} of ${A(x.k).n}` + (x.pnl < -0.5 ? ` and locked in a <b class="negc">${inr(-x.pnl)}</b> loss.` : x.pnl > 0.5 ? `, ${inr(x.pnl)} of it profit${x.tax > 0.5 ? ` (the taxman took ${inr(x.tax)})` : ''}.` : '.');
       if (G.owed() > 0) showPayup(msg); else closePayup();
     });
     $('payCard').onclick = () => { G.payCard(); sad(); closePayup(); };
@@ -306,7 +307,7 @@
       h += safeOnly ? `<p>Good thing there was a cushion — Savings and FD took the hit, so ${esc(NAME)} didn’t have to sell investments in a hurry.</p></div>`
         : `<p>Without enough cushion in Savings or FD, ${esc(NAME)} had to sell investments — whatever the market was doing.</p></div>`;
     }
-    for (const x of l.sells) h += `<div class="line"><span>You sold ${A(x.k).n}</span><b class="pos">+${inr(x.proceeds)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</b></div>`;
+    for (const x of l.sells) h += `<div class="line"><span>You sold ${A(x.k).n}</span><b class="pos">+${inr(x.proceeds)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}${x.tax > 0.5 ? ` <small>(−${inr(x.tax)} tax on profit)</small>` : ''}</b></div>`;
     for (const x of l.sells) if (x.repay > 0.5) h += `<div class="line"><span>Used to clear the credit card</span><b class="negc">−${inr(x.repay)}</b></div>`;
     h += `<div class="line total"><span>Ready for the gullak</span><span>${inr(G.me.cash)}</span></div></div>`;
     }

@@ -21,7 +21,7 @@
   const R = 20, START_YEAR = 2005, START_AGE = 25;
   const CRYPTO_R = 9;   // 2014
   const PPF_R = 15;     // 2020 — 15 years after 2005
-  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.36, FD_PENALTY = 0.01;   // cards charge ~3% a month
+  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.36, FD_PENALTY = 0.01, GAINS_TAX = 0.10;   // cards charge ~3% a month
 
   const ASSETS = [
     { k: 'sav', n: 'Savings account', i: '🏦', c: '#7b9cc4', f: 'Your bank account. Safe, ~3% a year, take it out anytime.' },
@@ -34,6 +34,9 @@
     { k: 'hot3', n: 'Stock tip C', i: '🔥', c: '#a8431f', f: '“A quiet lending company nobody at the party has heard of.” Real name revealed at the end.' },
   ];
   const KEYS = ASSETS.map(a => a.k);
+  // One simple rule: 10% tax on the profit part of a sale of shares or gold. Savings, FD and PPF are never taxed here.
+  const TAXED = ['nifty', 'gold', 'hot', 'hot2', 'hot3'];
+  const gainsTax = (k, pnl) => TAXED.includes(k) && pnl > 0 ? pnl * GAINS_TAX : 0;
   const SAFE_RET = { sav: 0.03, fd: 0.07, ppf: 0.075 };
 
   // Yearly returns (approx. Nifty 50 price return, gold in INR), %
@@ -182,7 +185,7 @@
   function newPlayer() {
     return { h: emptyH(), contrib: emptyH(), debt: 0, cash: 0, nwHist: [], log: null,
       incMult: 1, lucky: false,
-      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0, cardYears: 0, creepLost: 0 } };
+      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0, cardYears: 0, creepLost: 0, tax: 0 } };
   }
   const netWorth = p => KEYS.reduce((a, k) => a + p.h[k], 0) - p.debt;
 
@@ -212,10 +215,10 @@
     const mult = k === 'fd' ? 1 - FD_PENALTY : 1;
     const sell = Math.min(avail, need / mult), basis = p.contrib[k] * sell / avail;
     p.contrib[k] -= basis; p.h[k] -= sell;
-    const pen = k === 'fd' ? sell * FD_PENALTY : 0;
-    const x = { k, amt: sell, pen, got: sell * mult, pnl: sell - basis };
+    const pen = k === 'fd' ? sell * FD_PENALTY : 0, tax = gainsTax(k, sell - basis);
+    const x = { k, amt: sell, pen, tax, got: sell * mult - tax, pnl: sell - basis };
     log.sales.push(x);
-    p.stats.penalty += pen; p.stats.sold += sell;
+    p.stats.penalty += pen; p.stats.tax += tax; p.stats.sold += sell;
     if (!SAFE_RET[k]) p.stats.soldRisky += sell;
     if (!log.forced) { log.forced = true; p.stats.forcedYears++; }
     return x;
@@ -341,13 +344,15 @@
       if (!G.canSell(k)) return null;
       frac = Math.max(0, Math.min(1, +frac || 0)); if (!frac) return null;
       const p = G.me, amt = frac >= 1 ? p.h[k] : p.h[k] * frac;
-      const pen = k === 'fd' ? amt * FD_PENALTY : 0, proceeds = amt - pen;
+      const basis = p.contrib[k] * amt / p.h[k], tax = gainsTax(k, amt - basis);
+      const pen = k === 'fd' ? amt * FD_PENALTY : 0, proceeds = amt - pen - tax;
+      p.stats.tax += tax;
       p.contrib[k] *= 1 - amt / p.h[k];
       p.h[k] = frac >= 1 ? 0 : p.h[k] - amt;
       p.cash += proceeds; p.stats.penalty += pen; p.stats.chosenSold += amt;
       const repay = Math.min(p.cash, p.debt);   // selling clears the 36% card before anything is reinvested
       p.debt -= repay; p.cash -= repay;
-      const x = { k, amt, pen, proceeds, repay }; p.log.sells.push(x);
+      const x = { k, amt, pen, tax, proceeds, repay }; p.log.sells.push(x);
       return x;
     };
     G.takeaways = () => takeaways(G);
@@ -390,12 +395,12 @@
       out.push({ id: 'worst', icon: '☀️', impact: 1, title: 'Never a losing year', text: `${name}’s gullak never shrank from markets in a single year. Very calm — maybe a little too calm?` });
     }
     // 2. Emergency fund
-    const st = me.stats, cost = st.penalty + (st.interest > 10000 ? 0 : st.interest);   // big interest gets its own takeaway
+    const st = me.stats, cost = st.penalty + st.tax + (st.interest > 10000 ? 0 : st.interest);   // big interest gets its own takeaway
     if (st.forcedYears > 0) {
       out.push({ id: 'emergency', icon: '🧯', impact: cost + 0.25 * st.soldRisky,
         title: 'Keep an emergency fund',
         text: `Life forced ${name} to sell ${inr(st.sold)} of investments in ${st.forcedYears} year${st.forcedYears > 1 ? 's' : ''}` +
-          (cost > 1 ? `, costing ${inr(cost)} in penalties${st.interest > 10000 ? '' : ' and credit-card interest'}.` : '.') +
+          (cost > 1 ? `, costing ${inr(cost)} in penalties and tax${st.interest > 10000 ? '' : ' and credit-card interest'}.` : '.') +
           ` A few months of expenses kept in Savings/FD means emergencies don’t get to choose when you sell.` });
     } else {
       out.push({ id: 'emergency', icon: '🧯', impact: 0.5, title: 'No forced sales', text: `${name} never had to sell in a hurry. A cushion in Savings or FD is what makes that possible.` });
@@ -482,7 +487,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
+  const api = { GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;
