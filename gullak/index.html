@@ -21,8 +21,8 @@
     <h1>Gullak</h1>
     <p class="tagline">A little story about one life, one clay pot, and twenty years of choices.</p>
     <ol class="howto">
-      <li><b>Every page is a year</b> of your life, 2005 to 2024 — age 25 to 45.</li>
-      <li><b>Split each year’s savings</b> between the jars with the sliders. Real market history happens.</li>
+      <li><b>Every page is a year</b> of your life, from 25 to 45. The markets follow real Indian history — but we won’t tell you which years.</li>
+      <li><b>Split each year’s savings</b> between the jars. Sell when you’re scared, buy when you’re greedy — if you dare.</li>
       <li><b>Life will surprise you.</b> Keep a cushion — and try to beat FD Uncle and SIP Aunty.</li>
     </ol>
     <form id="nameForm" class="nameform" autocomplete="off">
@@ -40,6 +40,7 @@
   <header class="top">
     <div class="brand"><span class="mini-pot" id="miniPot"></span><span class="logo">Gullak</span></div>
     <div class="beads" id="beads" aria-label="Progress"></div>
+    <div class="gauge" id="gauge"></div>
     <div class="worth">
       <small>In the gullak</small>
       <b id="nw">₹0</b>
@@ -58,9 +59,10 @@
   <div class="end-hero">
     <div class="breakstage" id="breakStage"></div>
     <div class="end-head">
-      <div class="kicker">The last page · 2024</div>
+      <div class="kicker">The last page · Year 20</div>
       <h2 id="endTitle">The gullak is full. Time to break it.</h2>
       <p class="verdict" id="verdict"></p>
+      <div class="yearsreveal" id="yearsReveal"></div>
     </div>
   </div>
   <div class="podium" id="podium"></div>
@@ -79,7 +81,7 @@
 <!-- Modal: reveal / recap -->
 <div class="modal" id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 
-<footer class="foot">Market numbers are approximate (Nifty 50 price returns, gold in INR, Bitcoin in INR). A storybook, not financial advice.</footer>
+<footer class="foot">Market numbers are approximate, based on real Indian market history. A storybook, not financial advice.</footer>
 
 <script src="game.js"></script>
 <script src="ui.js"></script>
