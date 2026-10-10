@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gullak</title>
+<meta name="description" content="A storybook investing game: twenty years of one life, one clay piggy bank.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Title page -->
+<section id="title" class="screen title">
+  <div class="title-card">
+    <div class="hero" id="heroPot"></div>
+    <h1>Gullak</h1>
+    <p class="tagline">A little story about one life, one clay pot, and twenty years of choices.</p>
+    <ol class="howto">
+      <li><b>Every page is a year</b> of your life, 2005 to 2024 — age 25 to 45.</li>
+      <li><b>Split each year’s savings</b> between the jars with the sliders. Real market history happens.</li>
+      <li><b>Life will surprise you.</b> Keep a cushion — and try to beat FD Uncle and SIP Aunty.</li>
+    </ol>
+    <form id="nameForm" class="nameform" autocomplete="off">
+      <label for="nameIn">Whose story is this?</label>
+      <div class="namerow">
+        <input id="nameIn" maxlength="18" placeholder="Riya" aria-label="Your name">
+        <button class="btn primary" type="submit">Begin the story →</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Play -->
+<section id="play" class="screen" hidden>
+  <header class="top">
+    <div class="brand"><span class="mini-pot" id="miniPot"></span><span class="logo">Gullak</span></div>
+    <div class="beads" id="beads" aria-label="Progress"></div>
+    <div class="worth">
+      <small>In the gullak</small>
+      <b id="nw">₹0</b>
+      <div class="rivals" id="rivals"></div>
+    </div>
+  </header>
+  <div class="inside" id="inside"></div>
+  <main class="spread">
+    <article class="page" id="page"></article>
+    <aside class="jars" id="jars"></aside>
+  </main>
+</section>
+
+<!-- End -->
+<section id="end" class="screen" hidden>
+  <div class="end-hero">
+    <div class="breakstage" id="breakStage"></div>
+    <div class="end-head">
+      <div class="kicker">The last page · 2024</div>
+      <h2 id="endTitle">The gullak is full. Time to break it.</h2>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </div>
+  <div class="podium" id="podium"></div>
+  <h3 class="sec">Three things this story taught</h3>
+  <div class="takeaways" id="takeaways"></div>
+  <div class="endgrid">
+    <div class="card chartcard"><h3 class="sec small">Twenty years, three ways</h3><div class="chartbox"><canvas id="chart"></canvas></div></div>
+    <div class="card"><h3 class="sec small">What spilled out</h3><div id="finalAlloc"></div></div>
+  </div>
+  <div class="endbtns">
+    <button class="btn primary big" id="again">Play again — a new life 🔁</button>
+  </div>
+  <p class="seedline">Same twenty years for a friend: <a id="seedLink" href="#">seed <span id="seedNum"></span></a> <button class="linkbtn" id="copySeed">copy link</button></p>
+</section>
+
+<!-- Modal: reveal / recap -->
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+
+<footer class="foot">Market numbers are approximate (Nifty 50 price returns, gold in INR, Bitcoin in INR). A storybook, not financial advice.</footer>
+
+<script src="game.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
