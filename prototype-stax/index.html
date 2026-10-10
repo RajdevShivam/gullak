@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paisa Stax</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1f17;--card:#13291f;--card2:#183326;--line:#24473a;--txt:#e8f5ee;--mut:#8fb3a3;--saf:#ff9933;--grn:#34d399;--red:#fb7185;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:12px 16px 40px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px}
+.logo{font-weight:900;font-size:26px;letter-spacing:-.5px}
+.logo span{color:var(--saf)}
+.chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;font-size:14px}
+.nw{margin-left:auto;text-align:right}
+.nw small{display:block;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.nw b{font-size:34px;font-weight:900;color:var(--grn);font-variant-numeric:tabular-nums}
+.prog{display:grid;grid-template-columns:repeat(40,1fr);gap:2px;margin:4px 0 12px}
+.prog i{height:8px;border-radius:2px;background:#20402f}
+.prog i.done{background:var(--grn)}.prog i.cur{background:var(--saf)}
+.stax{display:flex;height:30px;border-radius:10px;overflow:hidden;background:#0a1912;border:1px solid var(--line);margin-bottom:6px}
+.stax div{transition:flex-grow .6s;min-width:0;display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mut);margin-bottom:14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.grid{display:grid;grid-template-columns:1fr 1.15fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.nw{margin-left:0;text-align:left;width:100%}.nw b{font-size:28px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.ev h2{margin:0 0 6px;font-size:22px}
+.ev p{margin:6px 0;color:#cfe6da}
+.news{border-left:4px solid var(--saf);padding:4px 10px;margin:8px 0;background:#1b3527;border-radius:6px}
+.life{border-left:4px solid #a78bfa;padding:4px 10px;margin:8px 0;background:#1d2f36;border-radius:6px}
+.forced{border:2px dashed var(--red);border-radius:10px;padding:8px 10px;margin:10px 0;background:#2a1a1f}
+.forced b{color:var(--red)}
+.cashline{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.big{font-size:22px;font-weight:900;color:var(--saf)}
+.asset{display:grid;grid-template-columns:34px 1fr auto;gap:2px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.asset:last-of-type{border-bottom:0}
+.asset .ico{font-size:24px;grid-row:span 2;text-align:center}
+.asset .nm{font-weight:800}
+.asset .fl{font-size:12px;color:var(--mut)}
+.asset .amt{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.asset .hold{text-align:right;font-size:12px;color:var(--mut)}
+.asset input{grid-column:2/4;width:100%;accent-color:var(--saf)}
+.asset.off{opacity:.45}
+.rc{display:inline-block;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:6px}
+.rc.up{background:#123d2c;color:var(--grn)}.rc.dn{background:#3d1520;color:var(--red)}
+.go{width:100%;margin-top:12px;padding:16px;font-size:19px;font-weight:900;border:0;border-radius:14px;background:var(--saf);color:#1a1205;cursor:pointer;box-shadow:0 5px 0 #b3651d;transition:transform .08s}
+.go:active{transform:translateY(3px);box-shadow:0 2px 0 #b3651d}
+.go:disabled{opacity:.5;cursor:wait}
+.debt{color:var(--red);font-weight:800}
+.bench{display:flex;gap:14px;font-size:13px;color:var(--mut);margin-top:10px;flex-wrap:wrap}
+footer{color:var(--mut);font-size:12px;margin-top:18px;text-align:center}
+.link{display:flex;gap:6px;margin-top:8px}
+.link input{flex:1;min-width:0;background:#0a1912;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px}
+.btn2{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+#end{display:none}
+.podium{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+@media(max-width:600px){.podium{grid-template-columns:1fr}}
+.pod{background:var(--card2);border-radius:12px;padding:12px;text-align:center;border:2px solid var(--line)}
+.pod.me{border-color:var(--saf)}
+.pod b{display:block;font-size:24px}
+.verdict{font-size:22px;font-weight:900;color:var(--saf);margin:6px 0}
+.flash{animation:fl .7s}
+@keyframes fl{0%{transform:scale(1.08)}100%{transform:scale(1)}}
+.sumhint{font-size:13px;color:var(--mut);text-align:right}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">Paisa <span>Stax</span> 💰</div>
+  <div class="chip" id="when">2005 · H1</div>
+  <div class="chip" id="age">Age 25</div>
+  <div class="nw"><small>Net worth</small><b id="nw">₹0</b></div>
+</header>
+<div class="prog" id="prog"></div>
+<div class="stax" id="stax"></div>
+<div class="legend" id="legend"></div>
+
+<div id="game" class="grid">
+  <div class="card ev" id="ev"></div>
+  <div class="card">
+    <div id="assets"></div>
+    <div class="sumhint" id="sumhint"></div>
+    <button class="go" id="go">Invest &amp; fast-forward 6 months ▶</button>
+    <div class="bench" id="bench"></div>
+  </div>
+</div>
+
+<div id="end" class="card">
+  <h2 style="margin:0">2024 · Game over — you're 45 🎂</h2>
+  <div class="verdict" id="verdict"></div>
+  <div class="podium" id="podium"></div>
+  <div style="height:300px"><canvas id="chart"></canvas></div>
+  <h3>Your final stax</h3>
+  <div id="finalAlloc"></div>
+  <h3>Challenge friends: same 20 years</h3>
+  <div class="link"><input id="link2" readonly><button class="btn2" onclick="copyLink('link2')">Copy</button></div>
+  <button class="go" onclick="playAgain()">Play again 🔁 (new 20 years)</button>
+</div>
+
+<div class="card" id="share1" style="margin-top:16px">
+  <b>Challenge friends: same 20 years</b>
+  <div class="link"><input id="link1" readonly><button class="btn2" onclick="copyLink('link1')">Copy</button></div>
+</div>
+<footer>Market data is approximate (Nifty 50 price returns, gold in INR, crypto is invented-ish). Educational game, not financial advice.</footer>
+</div>
+
+<script>
+// ---------- RNG ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const params=new URLSearchParams(location.search);
+let SEED=parseInt(params.get('seed'));
+if(!Number.isFinite(SEED)){SEED=Math.floor(Math.random()*1e9);history.replaceState(null,'','?seed='+SEED)}
+const rng=mulberry32(SEED);
+const gauss=()=>{let u=0,v=0;while(!u)u=rng();v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+
+// ---------- Data ----------
+const R=40, CRYPTO_R=16, PPF_R=30;
+const ASSETS=[
+ {k:'sav',n:'Savings A/c',i:'🏦',c:'#60a5fa',f:'Safe, ~3%/yr, withdraw anytime'},
+ {k:'fd',n:'Fixed Deposit',i:'📜',c:'#a3e635',f:'~7%/yr, 1% penalty if broken'},
+ {k:'ppf',n:'PPF',i:'🔒',c:'#2dd4bf',f:'~7.5%/yr tax-free, locked till 2020'},
+ {k:'nifty',n:'Nifty 50 Index Fund',i:'📈',c:'#34d399',f:'India\'s top 50 companies. Big swings'},
+ {k:'gold',n:'Gold',i:'🪙',c:'#facc15',f:'Crisis hedge, Amma approves'},
+ {k:'hot',n:'Hot Stock Tips',i:'🔥',c:'#f97316',f:'WhatsApp uncle approved'},
+ {k:'crypto',n:'Crypto',i:'₿',c:'#c084fc',f:'To the moon (or not)'},
+];
+const NIFTY={2005:36,2006:40,2007:55,2008:-52,2009:76,2010:18,2011:-25,2012:28,2013:7,2014:31,2015:-4,2016:3,2017:29,2018:3,2019:12,2020:15,2021:24,2022:4,2023:20,2024:9};
+const NIFTY_OV={'2008-0':-35,'2008-1':-26,'2009-0':50,'2009-1':17,'2020-0':-15,'2020-1':35};
+const GOLD={2005:20,2006:22,2007:17,2008:30,2009:24,2010:23,2011:32,2012:12,2013:-5,2014:-8,2015:-6,2016:11,2017:5,2018:7,2019:24,2020:28,2021:-4,2022:14,2023:15,2024:21};
+const CRYPTO_OV={'2017-1':300,'2018-0':-60,'2018-1':-50,'2021-0':150,'2022-0':-55,'2022-1':-40};
+const half=y=>Math.sqrt(1+y/100)-1;
+const NEWS={
+ '2005-0':['🎓 Welcome to adulting!',"You're 25, first job in Bengaluru. ₹60,000 to invest every 6 months. Biggest stax in 20 years wins."],
+ '2008-0':['🌍 Global financial crisis','Lehman wobbles, Sensex tumbling. Your office canteen talks of nothing else.'],
+ '2009-0':['📉 Markets in shambles','Experts say stay away from stocks. "Equity is dead," says a TV anchor.'],
+ '2013-0':['₿ Crypto unlocked','Your college friend says he made 10x on "Bitcoin". Crypto is now available.'],
+ '2013-1':['😱 Taper tantrum','Foreign money flees, rupee hits 68/$.'],
+ '2016-1':['💸 Demonetisation!','₹500/₹1000 notes cancelled overnight. ATM queues everywhere.'],
+ '2017-1':['🚀 Bitcoin mania','Everyone\'s buying Bitcoin. Even your chaiwala.'],
+ '2020-0':['🦠 COVID lockdown','Markets crash as India locks down. 🔓 Also: your PPF matured — unlocked!'],
+ '2020-1':['📲 Markets roaring back','Demat accounts boom; your cousin is now a "trader".'],
+ '2022-0':['🥶 Crypto winter','Crypto crashes, and the govt slaps a 30% tax on gains.'],
+};
+const LIFE=[
+ {id:'wedding',t:"Cousin's big fat wedding 💍",x:-0.6},
+ {id:'medical',t:'Medical emergency 🏥',x:-1.2},
+ {id:'diwali',t:'Diwali bonus 🪔',x:0.5},
+ {id:'phone',t:'Phone stolen 📱',x:-0.3},
+ {id:'laid',t:'Laid off 😬 — no income this round',x:0,laid:1},
+ {id:'promo',t:'Promotion 🎉 — income +20% for good',x:0,promo:1},
+ {id:'bike',t:'Bike repair 🛵',x:-0.2},
+ {id:'goa',t:'Goa trip with friends 🏖️',x:-0.4},
+];
+
+// ---------- Precompute the 20 years ----------
+const SCHED=[]; let baseInc=60000, recent=[];
+for(let r=0;r<R;r++){
+  const y=2005+(r>>1), h=r%2, key=y+'-'+h;
+  if(h===0&&r>0) baseInc*=1.08;
+  const nifty=(key in NIFTY_OV?NIFTY_OV[key]/100:half(NIFTY[y]));
+  const gold=half(GOLD[y]);
+  const hot=Math.max(-0.6,nifty*1.5+gauss()*0.2);
+  const cg=gauss();
+  const crypto=r<CRYPTO_R?0:(key in CRYPTO_OV?CRYPTO_OV[key]/100:Math.exp(cg*0.7+0.15)-1);
+  let life=null;
+  const roll=rng(), pick=Math.floor(rng()*LIFE.length);
+  if(r>0&&roll<0.3){const c=LIFE[pick]; if(!recent.slice(-3).includes(c.id)) life=c;}
+  recent.push(life?life.id:null);
+  const incNow=baseInc;                 // income for amounts this round
+  if(life&&life.promo){baseInc*=1.2}
+  SCHED.push({r,y,h,key,news:NEWS[key]||null,life,inc:life&&life.promo?baseInc:incNow,
+    ret:{sav:0.015,fd:0.034,ppf:0.037,nifty,gold,hot,crypto}});
+}
+
+// ---------- Simulation ----------
+const ORDER=['sav','fd','gold','nifty','hot','crypto'];
+function newPlayer(){return{h:{sav:0,fd:0,ppf:0,nifty:0,gold:0,hot:0,crypto:0},debt:0,cash:0,nwHist:[],log:null}}
+const nw=p=>Object.values(p.h).reduce((a,b)=>a+b,0)-p.debt;
+function beginRound(p,r){
+  const s=SCHED[r], log={income:0,life:0,debtPaid:0,sales:[],newDebt:0};
+  log.income=s.life&&s.life.laid?0:s.inc;
+  log.life=s.life?s.life.x*s.inc:0;
+  let cash=log.income+log.life;
+  if(cash>0&&p.debt>0){const pay=Math.min(cash,p.debt);p.debt-=pay;cash-=pay;log.debtPaid=pay}
+  if(cash<0){
+    let need=-cash; cash=0;
+    const order=r>=PPF_R?['sav','fd','ppf','gold','nifty','hot','crypto']:ORDER;
+    for(const k of order){
+      if(need<=0)break; const avail=p.h[k]; if(avail<=0)continue;
+      const mult=k==='fd'?0.99:1; const sell=Math.min(avail,need/mult);
+      p.h[k]-=sell; need-=sell*mult; log.sales.push({k,amt:sell,pen:k==='fd'?sell*0.01:0});
+      if(need<1e-6)need=0;
+    }
+    if(need>0){p.debt+=need;log.newDebt=need}
+  }
+  p.cash=cash; p.log=log; return log;
+}
+function endRound(p,r,alloc){
+  const s=SCHED[r]; let tot=0;
+  for(const a of ASSETS){if(enabled(a.k,r))tot+=Math.max(0,alloc[a.k]||0)}
+  if(tot<=0){alloc={sav:1};tot=1}
+  for(const a of ASSETS){if(enabled(a.k,r))p.h[a.k]+=p.cash*Math.max(0,alloc[a.k]||0)/tot}
+  p.cash=0;
+  for(const k in p.h)p.h[k]*=1+s.ret[k];
+  p.debt*=1.09;
+  p.nwHist.push(nw(p));
+}
+const enabled=(k,r)=>!(k==='crypto'&&r<CRYPTO_R);
+
+// ---------- State ----------
+const S={seed:SEED,round:0,me:newPlayer(),fd:newPlayer(),sip:newPlayer(),
+  alloc:{sav:50,fd:50,ppf:0,nifty:0,gold:0,hot:0,crypto:0},lastRet:null,done:false,schedule:SCHED};
+function startRound(){
+  const r=S.round;
+  const l=beginRound(S.me,r); beginRound(S.fd,r); beginRound(S.sip,r);
+  if(l.sales.length||l.newDebt) sad();
+  render();
+}
+
+// ---------- Formatting ----------
+function inr(v){
+  const neg=v<0; v=Math.abs(v); let s;
+  if(v>=1e7)s='₹'+(v/1e7).toFixed(2)+' Cr';
+  else if(v>=1e5)s='₹'+(v/1e5).toFixed(1)+' L';
+  else s='₹'+Math.round(v).toLocaleString('en-IN');
+  return (neg?'−':'')+s;
+}
+const pct=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(x!==0&&Math.abs(x)<0.1?1:0)+'%';
+const A=k=>ASSETS.find(a=>a.k===k);
+
+// ---------- Audio ----------
+let AC=null;
+function tone(freqs,dur,type){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  freqs.forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.value=f;
+  const t=AC.currentTime+i*dur;g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur*1.6);
+  o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+const chaChing=()=>tone([1318,1760,2637],0.07,'square');
+const sad=()=>tone([392,330,262],0.18,'sawtooth');
+
+// ---------- Render ----------
+const $=id=>document.getElementById(id);
+let shownNW=0;
+function animateNW(to){
+  const from=shownNW, t0=performance.now(), D=700;
+  const el=$('nw'); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  (function step(t){const k=Math.min(1,(t-t0)/D), e=1-Math.pow(1-k,3); const v=from+(to-from)*e;
+    el.textContent=inr(v); el.style.color=v<0?'var(--red)':'var(--grn)'; if(k<1)requestAnimationFrame(step); else shownNW=to;})(t0);
+}
+function renderHeader(){
+  const r=Math.min(S.round,R-1), s=SCHED[r];
+  $('when').textContent=S.done?'2024 · Done 🏁':s.y+' · H'+(s.h+1);
+  $('age').textContent='Age '+(S.done?45:25+Math.floor(r/2));
+  $('prog').innerHTML=Array.from({length:R},(_,i)=>`<i class="${i<S.round?'done':i===S.round&&!S.done?'cur':''}"></i>`).join('');
+  const p=S.me, tot=Object.values(p.h).reduce((a,b)=>a+b,0)+p.debt;
+  let bars=ASSETS.filter(a=>p.h[a.k]>0.5).map(a=>`<div style="flex-grow:${p.h[a.k]};background:${a.c}" title="${a.n} ${inr(p.h[a.k])}">${p.h[a.k]/tot>0.07?a.i:''}</div>`).join('');
+  if(p.debt>0.5)bars+=`<div style="flex-grow:${p.debt};background:var(--red);background-image:repeating-linear-gradient(45deg,transparent 0 6px,#0003 6px 12px)" title="Debt ${inr(p.debt)}">${p.debt/tot>0.07?'💳':''}</div>`;
+  $('stax').innerHTML=bars||'<div style="flex-grow:1;color:var(--mut)">Your stax is empty — invest to build it!</div>';
+  $('legend').innerHTML=ASSETS.filter(a=>p.h[a.k]>0.5).map(a=>`<span><i style="background:${a.c}"></i>${a.n} ${inr(p.h[a.k])}</span>`).join('')+(p.debt>0.5?`<span class="debt"><i style="background:var(--red)"></i>Credit-card debt ${inr(p.debt)} (18%/yr)</span>`:'');
+}
+function renderEvent(){
+  const s=SCHED[S.round], l=S.me.log;
+  let h=`<h2>${s.y} · H${s.h+1}</h2>`;
+  if(s.news)h+=`<div class="news"><b>${s.news[0]}</b><p>${s.news[1]}</p></div>`;
+  if(s.life)h+=`<div class="life"><b>${s.life.t}</b>${s.life.x?`<p>${s.life.x>0?'+':'−'}${inr(Math.abs(l.life))}</p>`:''}</div>`;
+  if(!s.news&&!s.life)h+=`<p style="color:var(--mut)">A quiet six months. Chai, work, repeat. ☕</p>`;
+  h+=`<div class="cashline"><span>Salary savings</span><b>${inr(l.income)}</b></div>`;
+  if(l.life)h+=`<div class="cashline"><span>Life happened</span><b style="color:${l.life<0?'var(--red)':'var(--grn)'}">${l.life<0?'−':'+'}${inr(Math.abs(l.life))}</b></div>`;
+  if(l.debtPaid)h+=`<div class="cashline"><span>Paid off card debt</span><b class="debt">−${inr(l.debtPaid)}</b></div>`;
+  if(l.sales.length||l.newDebt){
+    h+=`<div class="forced"><b>🚨 FORCED SALE — no emergency fund!</b>`;
+    for(const x of l.sales)h+=`<div class="cashline"><span>Sold ${A(x.k).i} ${A(x.k).n}</span><span>${inr(x.amt)}${x.pen?` <small>(penalty ${inr(x.pen)})</small>`:''}</span></div>`;
+    if(l.newDebt)h+=`<div class="cashline debt"><span>💳 Put on credit card @18%/yr</span><span>${inr(l.newDebt)}</span></div>`;
+    h+=`<p style="font-size:13px">Lesson: keep some cash in Savings/FD so life doesn't force you to sell at the worst time.</p></div>`;
+  }
+  h+=`<div class="cashline" style="border:0"><span>Cash to invest this round</span><span class="big">${inr(S.me.cash)}</span></div>`;
+  if(S.lastRet){h+=`<p style="font-size:13px;color:var(--mut);margin-top:10px">Last 6 months:</p><div>`+ASSETS.filter(a=>enabled(a.k,S.round-1)).map(a=>`<span class="rc ${S.lastRet[a.k]>=0?'up':'dn'}">${a.i} ${pct(S.lastRet[a.k])}</span>`).join('')+'</div>'}
+  $('ev').innerHTML=h;
+}
+function renderAssets(){
+  const r=S.round; let tot=0;
+  for(const a of ASSETS)if(enabled(a.k,r))tot+=+S.alloc[a.k];
+  $('assets').innerHTML=ASSETS.map(a=>{
+    const on=enabled(a.k,r), share=on&&tot>0?S.alloc[a.k]/tot:0;
+    const note=!on?' · <b style="color:var(--saf)">unlocks 2013</b>':(a.k==='ppf'?(r>=PPF_R?' · 🔓 unlocked':' · 🔒 can\'t withdraw till 2020'):'');
+    const chip=S.lastRet&&enabled(a.k,r-1)?`<span class="rc ${S.lastRet[a.k]>=0?'up':'dn'}">${pct(S.lastRet[a.k])}</span>`:'';
+    return `<div class="asset ${on?'':'off'}"><div class="ico">${a.i}</div>
+      <div><div class="nm">${a.n}${chip}</div><div class="fl">${a.f}${note}</div></div>
+      <div><div class="amt" id="amt-${a.k}">${on?Math.round(share*100)+'% · '+inr(S.me.cash*share):'—'}</div><div class="hold">holding ${inr(S.me.h[a.k])}</div></div>
+      <input type="range" min="0" max="100" step="5" value="${S.alloc[a.k]}" data-k="${a.k}" ${on?'':'disabled'}></div>`}).join('');
+  $('assets').querySelectorAll('input').forEach(inp=>inp.oninput=()=>{S.alloc[inp.dataset.k]=+inp.value;updateAmts()});
+  updateAmts();
+}
+function updateAmts(){
+  const r=S.round; let tot=0;
+  for(const a of ASSETS)if(enabled(a.k,r))tot+=+S.alloc[a.k];
+  for(const a of ASSETS){if(!enabled(a.k,r))continue;const sh=tot>0?S.alloc[a.k]/tot:0;$('amt-'+a.k).textContent=Math.round(sh*100)+'% · '+inr(S.me.cash*sh)}
+  $('sumhint').textContent=tot===0?'All sliders at 0 → it all goes to Savings':'Slider total '+tot+' → normalised to 100%';
+}
+function renderBench(){
+  $('bench').innerHTML=`<span>👴 FD Uncle: <b>${inr(nw(S.fd))}</b></span><span>👩 SIP Aunty: <b>${inr(nw(S.sip))}</b></span>`;
+}
+function render(){renderHeader();if(!S.done){renderEvent();renderAssets();renderBench()}}
+
+// ---------- Turn ----------
+function next(alloc,quiet){
+  if(S.done)return S;
+  if(alloc)S.alloc=Object.assign({sav:0,fd:0,ppf:0,nifty:0,gold:0,hot:0,crypto:0},alloc);
+  const r=S.round;
+  endRound(S.me,r,S.alloc); endRound(S.fd,r,{fd:1}); endRound(S.sip,r,{nifty:1});
+  S.lastRet=SCHED[r].ret; S.round++;
+  if(!quiet)chaChing();
+  animateNW(nw(S.me));
+  if(S.round>=R){S.done=true;renderHeader();showEnd()}
+  else startRound();
+  return S;
+}
+$('go').onclick=()=>{$('go').disabled=true;next();setTimeout(()=>$('go').disabled=false,350)};
+
+// ---------- End ----------
+let chart=null;
+function showEnd(){
+  $('game').style.display='none'; $('share1').style.display='none'; $('end').style.display='block';
+  const res=[{n:'You 😎',v:nw(S.me),me:1},{n:'FD Uncle 👴',v:nw(S.fd)},{n:'SIP Aunty 👩',v:nw(S.sip)}].sort((a,b)=>b.v-a.v);
+  const rank=res.findIndex(x=>x.me)+1;
+  $('verdict').textContent=rank===1?'🏆 You beat both! Certified Stax Master.':rank===2?'🥈 Respectable. You beat one relative.':'🥲 Even FD Uncle beat you. Diwali dinner will be awkward.';
+  $('podium').innerHTML=res.map((x,i)=>`<div class="pod ${x.me?'me':''}">#${i+1} ${x.n}<b style="color:${x.v<0?'var(--red)':'var(--grn)'}">${inr(x.v)}</b></div>`).join('');
+  const tot=Object.values(S.me.h).reduce((a,b)=>a+b,0)||1;
+  $('finalAlloc').innerHTML=ASSETS.filter(a=>S.me.h[a.k]>0.5).map(a=>`<div class="cashline"><span>${a.i} ${a.n}</span><span>${inr(S.me.h[a.k])} · ${(S.me.h[a.k]/tot*100).toFixed(0)}%</span></div>`).join('')+(S.me.debt>0.5?`<div class="cashline debt"><span>💳 Debt</span><span>−${inr(S.me.debt)}</span></div>`:'');
+  const labels=SCHED.map(s=>s.h?'':String(s.y));
+  try{
+    if(chart)chart.destroy();
+    chart=new Chart($('chart'),{type:'line',data:{labels,datasets:[
+      {label:'You',data:S.me.nwHist,borderColor:'#ff9933',borderWidth:3,pointRadius:0,tension:.25},
+      {label:'FD Uncle',data:S.fd.nwHist,borderColor:'#a3e635',borderWidth:2,pointRadius:0,tension:.25},
+      {label:'SIP Aunty',data:S.sip.nwHist,borderColor:'#60a5fa',borderWidth:2,pointRadius:0,tension:.25}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:900},interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:{color:'#e8f5ee'}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+inr(c.parsed.y)}}},
+        scales:{x:{ticks:{color:'#8fb3a3',autoSkip:false,maxRotation:0},grid:{color:'#1d3a2c'}},y:{ticks:{color:'#8fb3a3',callback:v=>inr(v)},grid:{color:'#1d3a2c'}}}}});
+  }catch(e){console.warn('chart failed',e)}
+}
+function playAgain(){location.href=location.pathname+'?seed='+Math.floor(Math.random()*1e9)}
+function copyLink(id){const el=$(id);el.select();try{navigator.clipboard.writeText(el.value)}catch(e){try{document.execCommand('copy')}catch(_){}}}
+
+// ---------- Boot ----------
+const link=location.origin+location.pathname+'?seed='+SEED;
+$('link1').value=link;$('link2').value=link;
+startRound();
+window.__stax={state:S,next:(a)=>next(a,true),schedule:SCHED,netWorth:()=>({me:nw(S.me),fd:nw(S.fd),sip:nw(S.sip)}),inr};
+</script>
+</body>
+</html>
