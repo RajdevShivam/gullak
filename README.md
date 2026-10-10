@@ -2,7 +2,7 @@
 
 *A storybook about 20 years of your money.*
 
-Gullak is the clay piggy bank every Indian kid had. In this game you get one: you're 25, it's 2005, and each chapter is a year of your life up to 2024. Every year your savings arrive, life happens (a cousin's wedding, a medical bill, a Diwali bonus, a layoff), the markets do what they actually did, and you decide where the money goes.
+Gullak is the clay piggy bank every Indian kid had. In this game you get one: you're 25, and each chapter is a year of your life: twenty years in all. The years are hidden (just Year 1 to Year 20), so you can't game history you remember. It's revealed at the end. Every year your savings arrive, life happens (a cousin's wedding, a medical bill, a Diwali bonus, a layoff), the markets do what they actually did, and you decide where the money goes.
 
 At 45 the gullak cracks open. You're ranked against **FD Uncle**, who kept everything in fixed deposits, and **SIP Aunty**, who put every rupee into a Nifty 50 index fund. Then you get three takeaways drawn from your own run.
 
@@ -10,7 +10,7 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
 
 ## How it plays
 
-- **20 chapters (2005–2024):** split each year's savings across 7 options:
+- **20 chapters (Year 1 to Year 20):** split each year's savings across 7 options:
 
   | Option | What it is |
   |---|---|
@@ -20,9 +20,9 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
   | Nifty 50 index fund | Follows the market |
   | Gold | Tends to rise in a crisis |
   | Hot stock tips | Risky |
-  | Crypto | Unlocks in 2014 |
+  | Rollercoaster 🎢 | A new, extremely volatile investment that unlocks partway through |
 
-- **Real history:** the 2008 crash, the 2009 rebound, the taper tantrum, demonetisation, the 2017 crypto mania, the COVID crash and recovery, and the crypto winter, using approximate real yearly returns.
+- **Real history, in disguise:** the markets follow what actually happened in India from 2005 to 2024, using approximate real yearly returns. The news cards hint at events without naming them, and the end screen reveals which 20 years you just lived.
 - **Life events and the emergency-fund lesson:** if you can't cover an expense, you're forced to sell investments, at a loss if the timing is bad. If that's not enough, the rest goes on a credit card at 18%.
 - **⏩ Fast-forward:** skip up to 5 years with a recap. It stops before big market events so you can react.
 - **Same seed, same 20 years:** add `?seed=42` to the URL so friends play the identical game.
@@ -45,7 +45,7 @@ node --test tests/
 
 ## Data note
 
-Market returns are approximate calendar-year figures for Nifty 50 (price), gold in INR and Bitcoin in INR. This is an educational game, not financial advice.
+Market returns are approximate calendar-year figures for Nifty 50 (price), gold in INR and Bitcoin in INR (the "Rollercoaster"). This is an educational game, not financial advice.
 
 ## Built at
 
