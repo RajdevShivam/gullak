@@ -84,7 +84,7 @@
     NAME = (name || '').trim().slice(0, 18) || 'Riya';
     try { localStorage.setItem('gullak-name', NAME); } catch (e) { }
     G = window.Gullak.createGame(SEED, { name: NAME, manual: true, profile: PROFILE });
-    shownNW = 0;
+    shownNW = 0; firstBill = null;
     show('play');
     mountPot($('miniPot'), 0);
     render();
@@ -101,7 +101,7 @@
     ['SIP Aunty', '“Selling the index? At these prices? Hai Ram.”'],
     ['Arvind on TV', '“Cash is king! Raise cash NOW!”'],
   ];
-  let payTimer = null, payLeft = 0, TIMED = true;
+  let payTimer = null, payLeft = 0, TIMED = true, firstBill = null;   // firstBill: the round of this game's first bill (the only one that gets the guide box)
   const PAY_SECONDS = 45;
   function tickPay() {
     payLeft--;
@@ -114,6 +114,7 @@
   }
   function showPayup(flash) {
     if (TIMED && !payTimer) { payLeft = PAY_SECONDS; payTimer = setInterval(tickPay, 1000); }
+    if (firstBill === null) firstBill = G.round;
     const owe = G.owed(), s = G.current(), c = G.choices.find(x => x.r === G.round), l = G.me.log, p = G.me;
     const why = c ? `${c.t}: ${c.label}` : s.life ? s.life.t : 'This year’s bills';
     const hk = HECKLE[(G.round + l.sales.length) % HECKLE.length];
@@ -131,8 +132,8 @@
     $('payupSheet').className = 'sheet payup' + (flash ? ' loss' : '');
     $('payupSheet').innerHTML = `<div class="kicker">Year ${G.round + 1} · ${esc(why)}</div>
       <h2><span class="negc mono">${inr(owe)}</span> is due. Now.</h2>
-      <div class="yourmove"><b>Your move:</b> this year’s savings aren’t enough. Pay the bill one of two ways:
-        <ol><li>Tap <b>Sell</b> next to an investment below, or</li><li>skip it: put it all on the credit card and move on.</li></ol></div>
+      ${G.round === firstBill ? `<div class="yourmove"><b>Your move:</b> this year’s savings aren’t enough. Pay the bill one of two ways:
+        <ol><li>Tap <b>Sell</b> next to an investment below, or</li><li>skip it: put it all on the credit card and move on.</li></ol></div>` : ''}
       <button class="btn card" id="payCard">Put it all on the credit card and continue → <small>${inr(owe)} at ${DRT} a year: about ${inr(owe * DR)} interest next year, and the year after…</small></button>
       ${TIMED ? `<p class="clock">Decide in <b id="payClock">${payLeft}s</b> or it goes on the credit card. <button class="linkbtn" id="noTimer">No timer, let me think</button></p>` : ''}
       ${flash ? `<p class="flash">${flash}</p>` : ''}

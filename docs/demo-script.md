@@ -1,30 +1,29 @@
 # Gullak: 3-minute demo script
 
-**Setup:** open `http://localhost:5175/?seed=42` (a fixed seed, so the demo is predictable). Rehearse once beforehand and note which chapter has the forced sale.
+**Setup:** open https://shivamrajdev.com/gullak/?seed=42 (fixed seed, so the demo is predictable). On the title page pick **Mumbai**, **IT** and **No timer, let me think** so you can talk without the clock running. Rehearse once.
+
+With seed 42: Year 4 is the crash, Year 5 the wedding, Year 8 the car, Year 11 the lottery.
 
 **0:00 – Hook (15s)**
 "Every Indian kid had a gullak. What if yours had to last 20 real years of Indian markets? We just won't tell you which 20."
 
 **0:15 – Title page (15s)**
-Type a judge's name. "It's their life story now."
+Tap Mumbai and IT, type a judge's name. "Their life now: Mumbai pay, Mumbai rent."
 
-**0:30 – Chapter 1 (30s)**
-Show the news card, the sliders and the plain-English explainers. Go safe: mostly FD and PPF. Invest, and point out the count-up and the return chips.
+**0:30 – Year 1 (25s)**
+Point at the ledger: salary savings, then "Rent in Mumbai". Show a slider and a row's plain-English blurb. Go mostly Nifty, some FD. Drop it in the gullak: the count-up and return chips.
 
-**1:00 – ⏩ Fast-forward (20s)**
-Fast-forward stops just before the crash year ("A giant bank collapses overseas…"). "It won't let you sleep through a crash." Move heavily into Nifty anyway, then take the hit.
+**0:55 – Fast-forward (15s)**
+"Skip" stops before Year 4 ("A giant bank collapses overseas…"). "It won't let you sleep through a crash." Note "Stock B just landed in the family WhatsApp group". Invest; take the hit.
 
-**1:20 – Panic or hold? (25s)**
-The next year: "Everyone says stay away from shares." Ask the room whether to hold or sell. Hold, and watch the rebound.
+**1:10 – Panic or hold? (20s)**
+Year 5: "Everyone says stay away from shares." Ask the room. Hold, and watch the +76% rebound.
 
-**1:45 – The wedding (25s)**
-Pick the big fat wedding. You're short, so choose sell or swipe the card at 36%. "This is the emergency-fund lesson, taught by Mummy's guest list."
+**1:30 – The wedding and the bill (30s)**
+Pick the big fat wedding. The bill pops up: "₹4.5 L is due. Now." Read one row aloud ("Locks in a ₹25,045 loss") and the FD penalty. "Sell, or put it all on the card at 36%." Mention that with the timer on you'd have 45 seconds. "The emergency-fund lesson, taught by Mummy's guest list."
 
-**2:10 – The lottery (20s)**
-Win the Diwali bumper, then say yes to the villa and Mama-ji. "Most of us would. That's the point."
+**2:00 – The lottery (20s)**
+Fast-forward to Year 11. Win the Diwali bumper, say yes to the villa and Mama-ji. "Most of us would. That's the point."
 
-**2:05 – ⏩ to the end (20s)**
-Fast-forward through the lockdown.
-
-**2:25 – The gullak cracks (35s)**
-Show the reveal ("You just lived through 2005–2024"), the ranking against FD Uncle and SIP Aunty, the chart, and the 3 personalised takeaways. Close with: "No AI at runtime. Real history, real lessons, one static page."
+**2:20 – The gullak cracks (40s)**
+Fast-forward to the end. Show "You just lived through 2005–2024", the stock reveal (A was Yes Bank…), the podium and its note ("a smaller balance doesn't mean a worse one"), the chart, and the 3 personalised takeaways. Close: "No AI at runtime, no backend. Real history, real lessons, one static page."

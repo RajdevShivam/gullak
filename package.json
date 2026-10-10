@@ -1,0 +1,12 @@
+{
+  "name": "gullak",
+  "private": true,
+  "description": "Gullak: a storybook investing game. Static page; no build step.",
+  "scripts": {
+    "test": "node --test tests/",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  }
+}

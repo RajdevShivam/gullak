@@ -10,9 +10,12 @@ At 45 the gullak cracks open. You're ranked against **FD Uncle**, who kept every
 
 Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined for India.
 
+**Play it:** https://shivamrajdev.com/gullak/ (about 10–15 minutes). Same 20 years as a friend: add `?seed=42`.
+
 ## How it plays
 
-- **20 chapters (Year 1 to Year 20):** split each year's savings across 6 options:
+- **Your life, your city:** pick a city (Mumbai, Bengaluru, Delhi or a small town) and a first job (IT, government, startup or family business). Big cities pay more and charge rent that rises every year; government jobs never lay you off; startups pay most but can fold. Personal beats land in the quiet years: Mummy's gold fund, a flat deposit, school fees, Papa retiring with no pension.
+- **20 chapters (Year 1 to Year 20):** split each year's new savings across the jars (money already in a jar stays put):
 
   | Option | What it is |
   |---|---|
@@ -21,10 +24,12 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
   | PPF | Government savings scheme, locked for 15 years |
   | Nifty 50 index fund | Follows the market |
   | Gold | Tends to rise in a crisis |
-  | Hot stock tips | Risky |
+  | Stock tips A, B, C | Single stocks forwarded on WhatsApp, names hidden. A is there from Year 1, B arrives in Year 4, C in Year 8. Revealed at the end |
 
 - **Real history, in disguise:** the markets follow what actually happened in India from 2005 to 2024, using approximate real yearly returns. The news cards hint at events without naming them, and the end screen reveals which 20 years you just lived.
-- **Life events and the emergency-fund lesson:** if you can't cover an expense, you're forced to sell investments, at a loss if the timing is bad. If that's not enough, the rest goes on a credit card at 18%.
+- **Bills you have to pay, now:** when an expense is bigger than this year's savings, a bill pops up. Each investment shows what selling it does ("Locks in a ₹30,470 loss", "Cashes ₹43,400 of profit… and pays tax", "10% penalty"). Sell, or put it all on the credit card at 36% a year and continue.
+- **One simple tax rule:** 10% of the profit when you sell shares, stock tips or gold. Savings, FD and PPF are never taxed here.
+- **A clock, if you want one:** 45 seconds per decision, per year and per bill. Run out and you get the usual choice, your current split, or the card. Pick "No timer, let me think" on the title page (or tap it next to any clock) to play at your own pace.
 - **Family decisions you can't dodge:** your own wedding (big fat, respectable or court marriage), the car, your sister's wedding, Papa's surgery. If you can't afford it, choose: sell investments, or swipe the credit card at 36% a year.
 - **The lottery:** you win the Diwali bumper, minus 31.2% tax. Then Mama-ji's business idea, forty new cousins, and a lifestyle upgrade that eats your savings forever arrive.
 - **Fear and greed:** Sharma-ji (15 years in the market), Arvind on TV, Kavya the full-time trader and WhatsApp-forward hot tips all comment on the asset you're looking at. They're timed against real history, so the panic calls land before rebounds.
@@ -44,12 +49,21 @@ Then open http://localhost:5175.
 ## Tests
 
 ```bash
-node --test tests/
+node --test tests/          # 33 rule tests, incl. a money-conservation audit over 60 random games (no dependencies)
+npm install && npx playwright test   # 2 browser tests: a full game through the real UI, bills and timers (uses installed Chrome)
+```
+
+## Publish
+
+The live copy is served from the portfolio-website repo, so pushing this repo does **not** update the site. Run:
+
+```bash
+scripts/deploy-site.sh      # tests, copies gullak/ into the site's public/gullak/, pushes, waits until live
 ```
 
 ## Data note
 
-Market returns are approximate calendar-year figures for Nifty 50 (price), gold in INR. This is an educational game, not financial advice.
+Market returns are approximate calendar-year figures for Nifty 50 (price) and gold in INR, written from memory during the hackathon and not yet checked against a primary source. The three stock tips are stylised: they follow the real story of each company, not its exact prices, and the end screen says so. This is an educational game, not financial advice.
 
 ## Built at
 
