@@ -101,8 +101,8 @@
     ['SIP Aunty', '“Selling the index? At these prices? Hai Ram.”'],
     ['Arvind on TV', '“Cash is king! Raise cash NOW!”'],
   ];
-  let payTimer = null, payLeft = 0;
-  const PAY_SECONDS = 15;
+  let payTimer = null, payLeft = 0, TIMED = true;
+  const PAY_SECONDS = 45;
   function tickPay() {
     payLeft--;
     const el = $('payClock'); if (el) { el.textContent = payLeft + 's'; el.parentNode.classList.toggle('hurry', payLeft <= 5); }
@@ -113,7 +113,7 @@
     }
   }
   function showPayup(flash) {
-    if (!payTimer) { payLeft = PAY_SECONDS; payTimer = setInterval(tickPay, 1000); }
+    if (TIMED && !payTimer) { payLeft = PAY_SECONDS; payTimer = setInterval(tickPay, 1000); }
     const owe = G.owed(), s = G.current(), c = G.choices.find(x => x.r === G.round), l = G.me.log, p = G.me;
     const why = c ? `${c.t}: ${c.label}` : s.life ? s.life.t : 'This year’s bills';
     const hk = HECKLE[(G.round + l.sales.length) % HECKLE.length];
@@ -131,12 +131,14 @@
     $('payupSheet').className = 'sheet payup' + (flash ? ' loss' : '');
     $('payupSheet').innerHTML = `<div class="kicker">Year ${G.round + 1} · ${esc(why)}</div>
       <h2><span class="negc mono">${inr(owe)}</span> is due. Now.</h2>
-      <p class="clock">Decide in <b id="payClock">${payLeft}s</b> or it goes on the credit card.</p>
-      <p class="sub">This year’s savings are gone. Pick what to sell, or swipe the card. Nothing else happens until this is paid.</p>
+      <div class="yourmove"><b>Your move:</b> this year’s savings aren’t enough. Pay the bill one of two ways:
+        <ol><li>Tap <b>Sell</b> next to an investment below, or</li><li>skip it: put it all on the credit card and move on.</li></ol></div>
+      <button class="btn card" id="payCard">Put it all on the credit card and continue → <small>${inr(owe)} at ${DRT} a year: about ${inr(owe * DR)} interest next year, and the year after…</small></button>
+      ${TIMED ? `<p class="clock">Decide in <b id="payClock">${payLeft}s</b> or it goes on the credit card. <button class="linkbtn" id="noTimer">No timer, let me think</button></p>` : ''}
       ${flash ? `<p class="flash">${flash}</p>` : ''}
       <p class="heckle"><b>${hk[0]}:</b> ${hk[1]}</p>
       <div class="payrows">${rows || '<p class="mut">Nothing left to sell.</p>'}</div>
-      <button class="btn card" id="payCard">Swipe the credit card: ${inr(owe)} at ${DRT} a year <small>about ${inr(owe * DR)} interest next year, and the year after…</small></button>`;
+`;
     $('payup').hidden = false;
     $('payupSheet').querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const x = G.payWith(b.dataset.pay); if (!x) return;
@@ -145,6 +147,7 @@
       if (G.owed() > 0) showPayup(msg); else closePayup();
     });
     $('payCard').onclick = () => { G.payCard(); sad(); closePayup(); };
+    if ($('noTimer')) $('noTimer').onclick = () => { TIMED = false; stopMove(); clearInterval(payTimer); payTimer = null; showPayup(); };
   }
   function closePayup() { if (payTimer) { clearInterval(payTimer); payTimer = null; } $('payup').hidden = true; renderTop(); renderPage(); renderJars(); window.scrollTo(0, 0); }
 
@@ -303,6 +306,7 @@
     }
     h += `</div>`;
     if (G.pending) {
+      h += `<div class="yourmove"><b>Your move:</b> ${esc(G.pending.t)}. Pick one option ${window.innerWidth < 900 ? 'below' : 'on the right'}. Nothing else happens this year until you decide.</div>`;
       h += `<div class="ledger"><div class="line total"><span>Ready for the gullak</span><span>—</span></div></div>`;
     } else {
     const ch0 = G.choices.find(c => c.r === G.round);
@@ -340,7 +344,7 @@
     const s = G.current(), r = G.round, cash = G.me.cash, ffN = G.ffYears();
     const ffBtn = `<button class="btn ghost" id="ffBtn" ${ffN ? '' : 'disabled'}>${ffN ? `Skip ${ffN} year${ffN > 1 ? 's' : ''} »` : 'Last page'}</button>`;
     const ffNote = ffN ? `Fast-forward keeps this mix and never sells${ffN < 5 && r + ffN < R - 1 ? ` · stops before Year ${r + ffN + 1}` : ''}.` : 'No skipping the final year.';
-    if (G.pending) { renderDecision(); return; }
+    if (G.pending) { renderDecision(); moveClock(); return; }
     const verdict = choiceVerdict();
     if (cash < 1) {
       $('jars').className = 'jars';
@@ -388,6 +392,27 @@
     });
     $('goBtn').onclick = () => invest();
     $('ffBtn').onclick = () => fastForward();
+    moveClock();
+  }
+  // ---------- Move timer: every decision and every year's investing gets PAY_SECONDS (unless the timer is off) ----------
+  let moveTimer = null, moveLeft = 0, moveKey = '';
+  function stopMove() { if (moveTimer) { clearInterval(moveTimer); moveTimer = null; } }
+  function moveClock() {
+    if (!TIMED || !G || G.done) { stopMove(); return; }
+    const key = G.round + (G.pending ? 'd' : 'i');
+    if (key !== moveKey) { moveKey = key; moveLeft = PAY_SECONDS; }
+    if (!moveTimer) moveTimer = setInterval(tickMove, 1000);
+    const then = G.pending ? 'you get the usual choice (the one FD Uncle and SIP Aunty make)' : 'the money drops into the gullak as split';
+    $('jars').insertAdjacentHTML('afterbegin', `<p class="clock movec${moveLeft <= 10 ? ' hurry' : ''}">Decide in <b id="moveClock">${moveLeft}s</b> or ${then}. <button class="linkbtn" id="noMoveTimer">No timer, let me think</button></p>`);
+    $('noMoveTimer').onclick = () => { TIMED = false; stopMove(); const y = window.scrollY; renderJars(); window.scrollTo(0, y); };
+  }
+  function tickMove() {
+    if (!$('payup').hidden || !$('modal').hidden || $('play').hidden || busy) return;   // paused while a popup is open
+    moveLeft--;
+    const el = $('moveClock'); if (el) { el.textContent = moveLeft + 's'; el.parentNode.classList.toggle('hurry', moveLeft <= 10); }
+    if (moveLeft > 0) return;
+    stopMove();
+    if (G.pending) commitChoice(G.pending.def); else invest();
   }
   // ---------- Family decisions: block the year until the player chooses ----------
   const fillN = t => String(t).split('{n}').join(NAME);
@@ -608,7 +633,7 @@
   for (const g of document.querySelectorAll('.pick')) g.onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
     for (const x of g.children) x.classList.toggle('on', x === b);
-    PROFILE[g.dataset.k] = b.dataset.v;
+    if (g.dataset.k === 'timer') TIMED = b.dataset.v === 'on'; else PROFILE[g.dataset.k] = b.dataset.v;
   };
   $('nameForm').onsubmit = e => { e.preventDefault(); startGame($('nameIn').value); };
   $('again').onclick = () => { location.href = location.pathname + '?seed=' + Math.floor(Math.random() * 1e9); };

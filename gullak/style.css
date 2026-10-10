@@ -379,9 +379,16 @@ body.ouch::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3
 .payrow .pr-hit{font:500 14px var(--serif)}
 .payrow .btn.sell{padding:8px 12px;font-family:var(--mono);white-space:nowrap}
 .payrow.locked{opacity:.5}
-.sheet.payup .btn.card{margin-top:14px;background:#9F2F2D;color:#fff;text-align:left}
+.sheet.payup .btn.card{margin:4px 0 12px;width:100%;background:#9F2F2D;color:#fff;text-align:left}
 .sheet.payup .btn.card small{display:block;font:400 12.5px var(--serif);opacity:.85}
 @media (max-width:560px){.payrow{grid-template-columns:1fr auto}.payrow .pr-hit{grid-column:1/-1;order:3}}
 .sheet.payup .clock{font:500 14px var(--mono);color:var(--mut);margin:0 0 6px}
 .sheet.payup .clock b{color:#9F2F2D;font-size:18px}
 .sheet.payup .clock.hurry{color:#9F2F2D;animation:shake2 .5s infinite}
+
+.yourmove{font:400 15px var(--serif);background:#FFF4D6;border:1px solid #E3B34B;border-left:4px solid #9E2B25;padding:10px 14px;margin:10px 0;border-radius:4px}
+.yourmove ol{margin:6px 0 0 20px;padding:0}
+.playtime{font:500 13px var(--mono);color:var(--mut);margin:-4px 0 14px;text-align:center}
+.clock.movec{font:500 13px var(--mono);color:var(--mut);margin:0 0 10px;padding:6px 10px;border:1px dashed var(--hair);border-radius:4px}
+.clock.movec b{color:#9F2F2D;font-size:16px}
+.clock.movec.hurry{color:#9F2F2D;border-color:#9F2F2D}
