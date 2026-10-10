@@ -217,6 +217,10 @@
     const s = G.current(), ch = chapter(s, NAME), l = G.me.log;
     let h = `<div class="kicker">${ch.title}</div><h2>${esc(ch.sub)}</h2><p class="story">${esc(ch.text)}</p><div class="notes">`;
     h += `<div class="note"><div><span class="tag news">In the news</span>${s.event ? '<span class="tag big">Big market year</span>' : ''}<b>${esc(s.news[0])}</b></div></div>`;
+    if (s.lottery) {
+      h += `<div class="note lotto"><div><span class="tag big">Jackpot</span><b>Diwali bumper lottery: you won</b></div>` +
+        `<span class="amt pos">+${inr(s.lottery.net)}</span></div>`;
+    }
     if (s.life) {
       h += `<div class="note"><div><span class="tag life">Life happens</span><b>${esc(s.life.t)}</b></div>` +
         (l.life ? `<span class="amt ${l.life < 0 ? 'negc' : 'pos'}">${l.life < 0 ? '−' : '+'}${inr(Math.abs(l.life))}</span>` : '') + `</div>`;
@@ -228,6 +232,7 @@
     const ch0 = G.choices.find(c => c.r === G.round);
     h += `<div class="ledger">`;
     h += `<div class="line"><span>Salary savings this year</span><b>${l.income ? inr(l.income) : '₹0 <small>(no job)</small>'}</b></div>`;
+    if (l.lottery) h += `<div class="line"><span>Lottery prize, after 31.2% tax</span><b class="pos">+${inr(l.lottery)}</b></div>`;
     if (l.life) h += `<div class="line"><span>${esc(s.life.t)}</span><b class="${l.life < 0 ? 'negc' : 'pos'}">${l.life < 0 ? '−' : '+'}${inr(Math.abs(l.life))}</b></div>`;
     if (ch0 && l.choice) h += `<div class="line"><span>${esc(ch0.t)}</span><b class="${l.choice < 0 ? 'negc' : 'pos'}">${l.choice < 0 ? '−' : '+'}${inr(Math.abs(l.choice))}</b></div>`;
     if (l.debtPaid) h += `<div class="line"><span>Paid off credit-card debt first</span><b class="negc">−${inr(l.debtPaid)}</b></div>`;
@@ -316,9 +321,10 @@
       <div class="opts">${d.options.map((o, i) => {
         const pv = G.previewChoice(i);
         return `<button class="opt" data-choose="${i}"><span class="ol">${esc(o.label)}</span><span class="oc ${pv.cost > 0.5 ? 'negc' : ''}">${costTxt(pv.cost)}</span>` +
-          (pv.shortfall > 0.5 ? `<span class="warn">You’ll have to sell ${inr(pv.shortfall)} of investments for this</span>` : '') + `</button>`;
+          (pv.shortfall > 0.5 ? `<span class="warn">You’ll have to sell ${inr(pv.shortfall)} of investments for this</span>` : '') +
+          (pv.creep ? `<span class="warn">…and bigger bills every year after</span>` : '') + `</button>`;
       }).join('')}</div>
-      <p class="sub">FD Uncle and SIP Aunty face the same choice. Nothing else happens this year until you decide.</p>`;
+      <p class="sub">${d.own ? 'FD Uncle and SIP Aunty never won anything. This one is all yours.' : 'FD Uncle and SIP Aunty face the same choice.'} Nothing else happens this year until you decide.</p>`;
     $('jars').querySelectorAll('[data-choose]').forEach(b => b.onclick = () => {
       if (!G.pending) return;
       const i = +b.dataset.choose, pv = G.previewChoice(i);
@@ -476,7 +482,7 @@
     const res = [{ n: NAME, v: nw.me, me: 1 }, { n: 'FD Uncle', v: nw.fd }, { n: 'SIP Aunty', v: nw.sip }].sort((a, b) => b.v - a.v);
     const rank = res.findIndex(x => x.me) + 1;
     $('endTitle').textContent = `${NAME} is 45. Time to break the gullak.`;
-    $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024</b> — real Indian market history. The Rollercoaster was <b>Bitcoin</b>.` +
+    $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024</b> — real Indian market history.` +
       `<ul>${G.sched.filter(s => s.event || s.y === 2014).map(s => `<li><span>Year ${s.r + 1} = ${s.y}</span> ${esc(s.news[2])}</li>`).join('')}</ul>` +
       (G.choices.length ? `<b>Your family decisions</b><ul>${G.choices.map(c => `<li><span>Year ${c.r + 1}</span> ${esc(c.t)}: ${esc(c.label)} <b class="negc">${costTxt(c.cost)}</b></li>`).join('')}</ul>` : '');
     $('verdict').textContent = rank === 1 ? `Out spills ${inr(nw.me)} — more than FD Uncle and SIP Aunty. The family WhatsApp group is speechless.`

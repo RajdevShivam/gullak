@@ -103,12 +103,9 @@ test('takeaways return 3 items', () => {
   }
 });
 
-test('crypto returns follow the real Bitcoin table and unlock in 2014', () => {
-  const table = { 2014: -56, 2015: 45, 2016: 128, 2017: 1200, 2018: -71, 2019: 97, 2020: 310, 2021: 62, 2022: -58, 2023: 157, 2024: 125 };
-  for (const seed of [1, 2, 777]) for (const y of G.buildSchedule(seed)) {
-    if (y.y < 2014) { assert.strictEqual(y.ret.crypto, 0); assert.strictEqual(G.enabled('crypto', y.r), false); }
-    else assert.ok(Math.abs(y.ret.crypto - table[y.y] / 100) < 1e-12, String(y.y));
-  }
+test('the Rollercoaster (crypto) is gone', () => {
+  assert.ok(!G.KEYS.includes('crypto'));
+  for (const s of G.createGame(3).sched) assert.strictEqual(s.ret.crypto, 0);
 });
 
 test('hot tips keep the sign of big Nifty years', () => {
@@ -177,7 +174,7 @@ test('story copy never reveals years or says crypto/Bitcoin', () => {
 test('life decisions: every game has all four, at their seeded rounds, one per year', () => {
   for (const seed of [1, 2, 3, 42, 777]) {
     const g = G.createGame(seed);
-    const at = g.sched.filter(s => s.choice).map(s => [s.choice.id, s.r]);
+    const at = g.sched.filter(s => s.choice && !s.choice.own).map(s => [s.choice.id, s.r]);
     assert.deepStrictEqual(at.map(a => a[0]), ['wedding', 'car', 'sister', 'surgery']);
     for (const [id, r] of at) assert.ok(G.DILEMMAS.find(d => d.id === id).at.includes(r));
     for (const s of g.sched) if (s.choice && s.life) assert.ok(s.life.promo, 'only a promotion can share a decision year');
@@ -231,4 +228,38 @@ test('a decision can be put on the credit card instead of selling', () => {
   g.step({ nifty: 1 });
   assert.ok(Math.abs(g.history[g.history.length - 1].interest - p.shortfall * 0.36) < 1e-6);
   assert.ok(g.me.stats.cardYears === 1);
+});
+
+test('lottery: the player wins once (after tax), rivals do not, then the asks arrive', () => {
+  for (const seed of [1, 2, 42, 99]) {
+    const g = G.createGame(seed);
+    const wins = g.sched.filter(s => s.lottery);
+    assert.strictEqual(wins.length, 1);
+    const w = wins[0];
+    assert.ok(G.LOTTERY.at.includes(w.r) && !w.choice);
+    assert.ok(Math.abs(w.lottery.net - w.lottery.gross * (1 - 0.312)) < 1e-6);
+    const asks = g.sched.filter(s => s.choice && s.choice.own).map(s => s.choice.id);
+    assert.deepStrictEqual(asks, ['lifestyle', 'mamaji', 'cousins']);
+    while (g.round < w.r) g.step({ sav: 1 });
+    assert.ok(Math.abs(g.me.log.lottery - w.lottery.net) < 1e-6);
+    assert.strictEqual(g.fd.log.lottery, 0);
+    assert.strictEqual(g.sip.log.lottery, 0);
+  }
+});
+
+test('lottery asks cost a share of the prize; lifestyle creep cuts savings for good', () => {
+  const g = G.createGame(42);
+  while (!(g.pending && g.pending.id === 'lifestyle')) g.step({ sav: 1 });
+  const net = g.sched.find(s => s.lottery).lottery.net;
+  assert.ok(Math.abs(g.previewChoice(0).cost - 0.5 * net) < 1e-6);
+  g.choose(0);
+  assert.ok(Math.abs(g.me.incMult - 0.7) < 1e-9);
+  g.step({ sav: 1 });
+  if (!g.pending) assert.ok(Math.abs(g.me.log.income - g.current().inc * 0.7) < 1e-6 || g.current().life);
+  while (!g.done) g.step({ sav: 1 });
+  assert.ok(g.me.stats.creepLost > 0);
+  assert.ok(g.takeaways().length === 3);
+  const all = [];
+  const h = G.createGame(42); while (!h.done) h.step({ sav: 1 });
+  assert.ok(h.choices.some(c => c.lotto));
 });

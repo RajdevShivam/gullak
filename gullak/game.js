@@ -30,7 +30,6 @@
     { k: 'nifty', n: 'Nifty 50 index fund', i: '📈', c: '#c4553a', f: "A tiny slice of India's 50 biggest companies. Grows over time, some years hurt." },
     { k: 'gold', n: 'Gold', i: '🪙', c: '#e3a33b', f: 'What Nani trusts. Often shines when stocks panic.' },
     { k: 'hot', n: 'Hot stock tips', i: '🔥', c: '#e0782f', f: 'Tips from the family WhatsApp group. Like the index, but louder.' },
-    { k: 'crypto', n: 'Rollercoaster', i: '🎢', c: '#8a68b8', f: 'A new, extremely volatile investment. Could multiply many times, could crash 70% in a year.' },
   ];
   const KEYS = ASSETS.map(a => a.k);
   const SAFE_RET = { sav: 0.03, fd: 0.07, ppf: 0.075 };
@@ -55,15 +54,15 @@
     2011: ['Gloomy headlines, golden gold', 'Scandals fill the news, stocks feel heavy, and gold glitters the way Nani always said it would.', 'Markets fell, gold boomed'],
     2012: ['Slow and steady', 'Stocks crawl back up. {n} learns the word “volatility” and pretends to have always known it.', 'Quiet recovery'],
     2013: ['The rupee tumbles', 'The rupee suddenly tumbles against the dollar. Imported things get pricier overnight.', 'The “taper tantrum” — rupee hit 68/$'],
-    2014: ['New hope — and a new thing', 'A big election result has markets cheerful. And a strange new investment appears — {n}’s cousin won’t stop talking about it. The Rollercoaster is now unlocked.', 'Election rally; Bitcoin exchanges opened in India'],
+    2014: ['New hope', 'A big election result has markets cheerful. Every uncle at the wedding has a stock tip.', 'Election rally'],
     2015: ['A shrug of a year', 'Trouble in a faraway economy; markets shrug and dip a little.', 'China slowdown wobble'],
     2016: ['Notes cancelled!', 'Overnight, big notes are cancelled. Queues at every ATM. {n} spends a weekend in line, making friends.', 'Demonetisation'],
-    2017: ['The Rollercoaster goes vertical', 'That strange new investment shoots up many times over. The chaiwala, the cousin and the cousin’s dog are all buying.', 'Bitcoin mania (+1200%)'],
-    2018: ['The hangover', 'The Rollercoaster loses most of its value. The cousin goes very quiet on WhatsApp.', 'Bitcoin crash (−71%)'],
+    2017: ['Everyone is buying', 'Small-company shares shoot up. The chaiwala, the cousin and the cousin’s dog all have a demat account now.', 'Small-cap mania'],
+    2018: ['The hangover', 'Last year’s hot small companies crash hard. The cousin goes very quiet on WhatsApp.', 'Small-cap crash'],
     2019: ['A steady year', 'Markets inch up, nothing explodes. {n} enjoys the boring peace.', 'Steady gains'],
     2020: ['The world stops', 'A strange illness spreads; the country locks down and markets plunge. Then, months later, the world reopens and markets roar. {n}’s PPF also finally unlocks.', 'COVID crash and recovery'],
-    2021: ['Everyone is a trader now', 'Trading apps boom, the Rollercoaster climbs again, and {n}’s cousin quits his job to “trade full-time”.', 'Retail-investor boom'],
-    2022: ['Winter for the wild one', 'The wild asset everyone loved collapses, and the government taxes it heavily. The cousin un-quits his job.', 'Crypto winter + 30% crypto tax'],
+    2021: ['Everyone is a trader now', 'Trading apps boom, every tip seems to work, and {n}’s cousin quits his job to “trade full-time”.', 'Retail-investor boom'],
+    2022: ['Rates go up', 'Loans get costlier, the trading-app crowd thins out, and the cousin un-quits his job.', 'Rate hikes; retail frenzy cools'],
     2023: ['Good news from space', 'India pulls off something historic in space, and markets climb cheerfully.', 'Chandrayaan-3 landed on the moon'],
     2024: ['The last page', 'Markets sit near their highest ever. {n} turns 45 and wonders what the gullak holds.', 'Markets near record highs'],
   };
@@ -104,6 +103,27 @@
         { label: 'Wait for the government hospital', x: -0.3, note: 'Six months on the list. Papa says he is fine. He is not.' } ] },
   ];
 
+  // The lottery: the player (only) wins once, then the asks begin. Ask options use `x` as a share of the
+  // after-tax prize; `creep` permanently cuts future savings (lifestyle creep). `own` = rivals don't face it.
+  const LOTTERY = { at: [7, 8, 9, 10], gross: 10, tax: 0.312 };
+  const LOTTO_ASKS = [
+    { id: 'lifestyle', own: 1, def: 2, t: 'A lottery winner’s lifestyle', s: 'Everyone agrees: a lottery winner cannot keep living in a 1BHK and riding a scooter.',
+      options: [
+        { label: 'Villa, SUV, the works', x: -0.5, creep: 0.3, note: 'The EMIs, the driver and the club fees now eat 30% of what {n} saves. Every year. Forever.' },
+        { label: 'A bigger flat, nothing crazy', x: -0.25, creep: 0.1, note: 'Bigger flat, bigger bills. Savings quietly shrink by 10% for good.' },
+        { label: 'Change nothing', x: 0, note: 'The neighbours are convinced {n} is hiding the money somewhere.' } ] },
+    { id: 'mamaji', own: 1, def: 2, t: 'Mama-ji’s business idea', s: 'Mama-ji visits with sweets and a sure-shot plan: a franchise of a franchise. He only needs a little capital.',
+      options: [
+        { label: 'Back Mama-ji’s business', x: -0.35, note: 'The franchise shuts in eight months. Mama-ji blames the economy.' },
+        { label: 'Lend him a little', x: -0.1, note: 'It is never mentioned again. Mama-ji still comes for Diwali.' },
+        { label: 'Politely say no', x: 0, note: 'By evening the whole family knows that {n} has changed.' } ] },
+    { id: 'cousins', own: 1, def: 2, t: 'Forty new cousins', s: 'Suddenly {n} has forty cousins. Three of them need help: college fees, a wedding, and a medical thing nobody will explain.',
+      options: [
+        { label: 'Help all of them', x: -0.3, note: 'The phone now rings every Sunday. Word has spread.' },
+        { label: 'Help just the college fees', x: -0.08, note: 'One cousin sends a thank-you card. The other two do not.' },
+        { label: 'Help none of them', x: 0, note: 'The family WhatsApp group goes quiet whenever {n} posts.' } ] },
+  ];
+
   // ---------- Schedule (all randomness decided up front from the seed) ----------
   function buildSchedule(seed) {
     const rng = makeRng(seed >>> 0);
@@ -115,7 +135,7 @@
       let hot = nifty * 1.5 + rng.gauss() * 0.25;
       if (Math.abs(nifty) > 0.2 && Math.sign(hot) !== Math.sign(nifty)) hot = nifty * 0.75; // noise can't flip big years
       hot = Math.max(-0.8, hot);
-      const crypto = r >= CRYPTO_R ? CRYPTO[y] / 100 : 0;
+      const crypto = 0;   // the Rollercoaster was removed from the game
       const roll = rng(), pick = Math.floor(rng() * LIFE.length);
       let life = null;
       if (r > 0 && roll < 0.35) { const c = LIFE[pick]; if (!recent.slice(-3).includes(c.id)) life = c; }
@@ -131,6 +151,18 @@
       s.choice = d;
       if (s.life && !s.life.promo) s.life = null;   // one family drama per year
     }
+    const free = out.filter(s => LOTTERY.at.includes(s.r) && !s.choice);
+    const win = free[Math.floor(drng() * free.length)];
+    win.lottery = { gross: LOTTERY.gross * win.inc, net: LOTTERY.gross * win.inc * (1 - LOTTERY.tax) };
+    if (win.life && !win.life.promo) win.life = null;
+    let r = win.r + 1;
+    for (const a of LOTTO_ASKS) {
+      while (r < R - 1 && out[r].choice) r++;
+      if (r >= R - 1) break;
+      out[r].choice = Object.assign({ base: win.lottery.net }, a);
+      if (out[r].life && !out[r].life.promo) out[r].life = null;
+      r++;
+    }
     return out;
   }
 
@@ -138,17 +170,20 @@
   const emptyH = () => ({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, crypto: 0 });
   function newPlayer() {
     return { h: emptyH(), contrib: emptyH(), debt: 0, cash: 0, nwHist: [], log: null,
-      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0, cardYears: 0 } };
+      incMult: 1, lucky: false,
+      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0, cardYears: 0, creepLost: 0 } };
   }
   const netWorth = p => KEYS.reduce((a, k) => a + p.h[k], 0) - p.debt;
 
   // fund: how a shortfall is covered. 'sell' (default) force-sells investments; 'card' puts it all on the credit card.
   function beginRound(p, s, choiceX, fund) {
     const log = { income: 0, life: 0, choice: 0, debtPaid: 0, sales: [], newDebt: 0, sells: [] };
-    log.income = s.life && s.life.laid ? 0 : s.inc;
+    log.income = (s.life && s.life.laid ? 0 : s.inc) * p.incMult;
+    if (p.incMult < 1 && !(s.life && s.life.laid)) p.stats.creepLost += s.inc * (1 - p.incMult);
+    log.lottery = s.lottery && p.lucky ? s.lottery.net : 0;
     log.life = s.life ? s.life.x * s.inc : 0;
-    log.choice = (choiceX || 0) * s.inc;
-    let cash = log.income + log.life + log.choice;
+    log.choice = (choiceX || 0) * ((s.choice && s.choice.base) || s.inc);
+    let cash = log.income + log.lottery + log.life + log.choice;
     if (cash > 0 && p.debt > 0) { const pay = Math.min(cash, p.debt); p.debt -= pay; cash -= pay; log.debtPaid = pay; }
     if (cash < 0 && fund === 'card') {
       p.debt += -cash; log.newDebt = -cash; log.onCard = true; p.stats.cardYears++; cash = 0;
@@ -202,13 +237,13 @@
     const G = {
       seed, sched, R, round: 0, done: false,
       name: (opts && opts.name) || 'Riya',
-      me: newPlayer(), fd: newPlayer(), sip: newPlayer(),
+      me: Object.assign(newPlayer(), { lucky: true }), fd: newPlayer(), sip: newPlayer(),
       alloc: { sav: 30, fd: 30, ppf: 0, nifty: 40, gold: 0, hot: 0, crypto: 0 },
       history: [], choices: [], pending: null,
     };
     function start() {
       const s = sched[G.round];
-      const defX = s.choice ? s.choice.options[s.choice.def].x : 0;
+      const defX = s.choice && !s.choice.own ? s.choice.options[s.choice.def].x : 0;
       beginRound(G.fd, s, defX); beginRound(G.sip, s, defX);
       if (s.choice) G.pending = s.choice;   // the player's round begins once they choose
       else beginRound(G.me, s);
@@ -217,15 +252,18 @@
     G.previewChoice = function (i) {
       const s = sched[G.round], o = G.pending && G.pending.options[i];
       if (!o) return null;
-      const income = s.life && s.life.laid ? 0 : s.inc, life = s.life ? s.life.x * s.inc : 0, cost = -o.x * s.inc;
-      return { cost, shortfall: Math.max(0, cost - income - life) };
+      const income = (s.life && s.life.laid ? 0 : s.inc) * G.me.incMult, life = s.life ? s.life.x * s.inc : 0;
+      const cost = -o.x * (G.pending.base || s.inc);
+      return { cost, shortfall: Math.max(0, cost - income - life), creep: o.creep || 0 };
     };
     G.choose = function (i, fund) {
       const d = G.pending, o = d && d.options[i];
       if (!o) return null;
       const s = sched[G.round];
       const log = beginRound(G.me, s, o.x, fund);
-      G.choices.push({ r: s.r, y: s.y, id: d.id, t: d.t, i, label: o.label, note: o.note, cost: -o.x * s.inc, def: i === d.def, fund: log.onCard ? 'card' : 'sell' });
+      if (o.creep) G.me.incMult *= 1 - o.creep;
+      G.choices.push({ r: s.r, y: s.y, id: d.id, t: d.t, i, label: o.label, note: o.note, cost: -o.x * (d.base || s.inc), def: i === d.def,
+        fund: log.onCard ? 'card' : 'sell', lotto: !!d.own, creep: o.creep || 0 });
       G.pending = null;
       return log;
     };
@@ -252,7 +290,7 @@
     G.ffYears = () => {
       const max = Math.max(0, Math.min(5, R - 1 - G.round));
       let n = 0;
-      while (n < max && (n === 0 || !(sched[G.round + n].event || sched[G.round + n].choice))) n++;
+      while (n < max && (n === 0 || !(sched[G.round + n].event || sched[G.round + n].choice || sched[G.round + n].lottery))) n++;
       return n;
     };
     G.ff = function (alloc) {
@@ -289,6 +327,7 @@
   const fill = (t, name) => t.replace(/\{n\}/g, name);
   function chapter(s, name) {
     const parts = [fill(s.news[1], name)];
+    if (s.lottery) parts.push(`${name}’s Diwali bumper lottery ticket WINS ${inr(s.lottery.gross)}! The tax department takes 31.2% before anyone else can, leaving ${inr(s.lottery.net)}. Then ${name}’s phone starts ringing.`);
     if (s.choice) parts.push(fill(s.choice.s, name));
     if (s.life) parts.push(fill(s.life.s, name));
     return { title: `Chapter ${s.r + 1} · Year ${s.r + 1}`, sub: `${name} is ${s.age}.`, headline: s.news[0], text: parts.join(' ') };
@@ -298,6 +337,7 @@
   // ---------- Takeaways ----------
   function takeaways(G) {
     const H = G.history, me = G.me, name = G.name, out = [];
+    const growth = r => H.filter(h => h.r >= r).reduce((g, h) => g * (1 + h.ret.nifty), 1);
     const nw = G.netWorth();
     // 1. Worst year
     let worst = null;
@@ -359,23 +399,7 @@
     if (panic && !(ps && ps.more > 0)) out.push({ id: 'panic', icon: '😱', impact: panic.missed,
       title: 'The panic tax',
       text: `After the ${panic.crashY} crash, ${name} cut stocks by ${Math.round(panic.drop * 100)} points in ${panic.y} — right before the rebound. That flinch cost about ${inr(panic.missed)} by the end.` });
-    // 5. Crypto / hot tips
-    const totalGain = nw.me - KEYS.reduce((a, k) => a + me.contrib[k], 0);
-    const cGain = me.h.crypto - me.contrib.crypto;
-    if (me.contrib.crypto > 1000 && cGain > 0 && totalGain > 0 && cGain / totalGain > 0.25) {
-      out.push({ id: 'cryptoShare', icon: '🎢', impact: cGain,
-        title: 'The Rollercoaster did the heavy lifting',
-        text: `The Rollercoaster — it was Bitcoin! — made ${inr(cGain)} of ${name}’s gains (${Math.round(Math.min(1, cGain / totalGain) * 100)}%) — a wild ride most real investors didn’t hold through the −71% and −58% years.` });
-    } else if (me.contrib.crypto <= 1000) {
-      let slice = 0;
-      for (const h of H) if (h.r >= CRYPTO_R) {
-        let g = 1; for (const j of H) if (j.r >= h.r) g *= 1 + j.ret.crypto;
-        slice += 0.05 * h.invested * (g - 1);
-      }
-      if (slice > 0) out.push({ id: 'cryptoSkip', icon: '🎢', impact: slice * 0.08, // hypothetical — discount heavily
-        title: 'The Rollercoaster not ridden',
-        text: `${name} skipped the Rollercoaster (it was Bitcoin). A tiny 5% slice of each year’s savings from Year 10 would have become ${inr(slice)} more — if ${name} could sit through two 60–70% crashes. Many couldn’t.` });
-    }
+    // 5. Hot tips
     for (const k of ['hot']) {
       const gain = me.h[k] - me.contrib[k];
       if (me.contrib[k] > 1000) out.push({ id: k, icon: A(k).i, impact: Math.abs(gain),
@@ -383,12 +407,22 @@
         text: gain >= 0 ? `${A(k).n} turned ${inr(me.contrib[k])} into ${inr(me.h[k])}. Lucky this time — the ride was wild, and it doesn’t always end this way.`
           : `${inr(me.contrib[k])} went into ${A(k).n}; ${inr(me.h[k])} is left. Exciting is not the same as profitable.` });
     }
+    // 4c. Lottery
+    const won = H.find(h => h.log && h.log.lottery);
+    if (won) {
+      const net = won.log.lottery, given = G.choices.filter(c => c.lotto).reduce((a, c) => a + c.cost, 0), creep = me.stats.creepLost;
+      const fv = net * growth(won.r), cursed = given + creep > 0.2 * net;
+      out.push({ id: 'lottery', icon: '🎟️', impact: cursed ? (given + creep) * 1.4 : fv * 0.15,
+        title: cursed ? 'The lottery curse' : 'A lottery winner who stayed boring',
+        text: cursed
+          ? `${name} won ${inr(net)} after tax in Year ${won.r + 1}. Then ${inr(given)} went to asks and upgrades` + (creep > 0 ? `, and lifestyle creep cost another ${inr(creep)} in lost savings` : '') + `. Left untouched in the Nifty 50, the prize alone would be ${inr(fv)} today. Many winners end up broke, not from the win but from what comes after.`
+          : `${name} won ${inr(net)} after tax and mostly said no. Left untouched in the Nifty 50, the prize alone grew to ${inr(fv)}. Saying no to Mama-ji is a financial skill.` });
+    }
     // 5a. Credit card
     if (st.interest > 10000) out.push({ id: 'debt', icon: '💳', impact: st.interest * 1.5,
       title: 'The credit card always wins',
       text: `${name} paid ${inr(st.interest)} in credit-card interest at 36% a year. No investment in this game reliably beats that rate. Clear the card first, invest second.` });
     // 5b. Big life decisions: what the money would have become in the index
-    const growth = r => H.filter(h => h.r >= r).reduce((g, h) => g * (1 + h.ret.nifty), 1);
     let big = null;
     for (const c of G.choices) if (c.cost > 0) { const fv = c.cost * growth(c.r); if (!big || fv > big.fv) big = Object.assign({ fv }, c); }
     if (big && big.fv > big.cost * 1.5) out.push({ id: 'choice', icon: '💍', impact: (big.fv - big.cost) * 0.5,
@@ -409,7 +443,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS,
+  const api = { DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;

@@ -355,3 +355,8 @@ body.ouch::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3
   .actions .ghost{flex:1 1 90px;padding:12px 8px;font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Lottery jackpot note */
+.note.lotto { border: 2px solid #346538; background: #EDF3EC; padding: 10px 12px; animation: lottoPop .6s cubic-bezier(.16,1,.3,1); }
+.note.lotto .amt { font-size: 1.6em; }
+@keyframes lottoPop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
