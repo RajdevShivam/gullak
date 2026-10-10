@@ -188,26 +188,35 @@
     if (cash < 0 && fund === 'card') {
       p.debt += -cash; log.newDebt = -cash; log.onCard = true; p.stats.cardYears++; cash = 0;
     }
-    if (cash < 0) {
-      let need = -cash; cash = 0;
-      const order = s.r >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'];
-      for (const k of order) {
-        if (need <= 0) break;
-        const avail = p.h[k]; if (avail <= 0) continue;
-        const mult = k === 'fd' ? 1 - FD_PENALTY : 1;
-        const sell = Math.min(avail, need / mult);
-        p.contrib[k] *= avail > 0 ? 1 - sell / avail : 0;
-        p.h[k] -= sell; need -= sell * mult;
-        const pen = k === 'fd' ? sell * FD_PENALTY : 0;
-        log.sales.push({ k, amt: sell, pen });
-        p.stats.penalty += pen; p.stats.sold += sell;
-        if (!SAFE_RET[k]) p.stats.soldRisky += sell;
-        if (need < 1e-6) need = 0;
-      }
-      if (need > 0) { p.debt += need; log.newDebt = need; }
-      if (log.sales.length || log.newDebt) p.stats.forcedYears++;
+    p.log = log; p.owe = 0;
+    if (cash < 0 && fund === 'manual') { p.owe = -cash; cash = 0; }   // the player picks what to sell (G.payWith / G.payCard)
+    if (cash < 0) { coverAuto(p, s, -cash); cash = 0; }
+    p.cash = cash; return log;
+  }
+
+  // Sell up to `need` (after penalty) from asset k to pay a bill. Returns the sale, or null.
+  function sellFor(p, s, k, need) {
+    const log = p.log, avail = p.h[k];
+    if (avail <= 0.5 || need <= 0 || (k === 'ppf' && s.r < PPF_R)) return null;
+    const mult = k === 'fd' ? 1 - FD_PENALTY : 1;
+    const sell = Math.min(avail, need / mult), basis = p.contrib[k] * sell / avail;
+    p.contrib[k] -= basis; p.h[k] -= sell;
+    const pen = k === 'fd' ? sell * FD_PENALTY : 0;
+    const x = { k, amt: sell, pen, got: sell * mult, pnl: sell - basis };
+    log.sales.push(x);
+    p.stats.penalty += pen; p.stats.sold += sell;
+    if (!SAFE_RET[k]) p.stats.soldRisky += sell;
+    if (!log.forced) { log.forced = true; p.stats.forcedYears++; }
+    return x;
+  }
+  // The old automatic order: safest first, then the card.
+  function coverAuto(p, s, need) {
+    const order = s.r >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'];
+    for (const k of order) { if (need < 1e-6) break; const x = sellFor(p, s, k, need); if (x) need -= x.got; }
+    if (need > 1e-6) {
+      p.debt += need; p.log.newDebt += need;
+      if (!p.log.forced) { p.log.forced = true; p.stats.forcedYears++; }
     }
-    p.cash = cash; p.log = log; return log;
   }
 
   function normAlloc(alloc, r) {
@@ -238,6 +247,7 @@
       seed, sched, R, round: 0, done: false,
       name: (opts && opts.name) || 'Riya',
       me: Object.assign(newPlayer(), { lucky: true }), fd: newPlayer(), sip: newPlayer(),
+      manual: !!(opts && opts.manual),   // UI mode: shortfalls wait for the player to choose what to sell
       alloc: { sav: 30, fd: 30, ppf: 0, nifty: 40, gold: 0, hot: 0, crypto: 0 },
       history: [], choices: [], pending: null,
     };
@@ -246,7 +256,7 @@
       const defX = s.choice && !s.choice.own ? s.choice.options[s.choice.def].x : 0;
       beginRound(G.fd, s, defX); beginRound(G.sip, s, defX);
       if (s.choice) G.pending = s.choice;   // the player's round begins once they choose
-      else beginRound(G.me, s);
+      else beginRound(G.me, s, 0, G.manual ? 'manual' : undefined);
     }
     // What an option would do, without committing: its cost and how much would have to be force-sold.
     G.previewChoice = function (i) {
@@ -260,7 +270,7 @@
       const d = G.pending, o = d && d.options[i];
       if (!o) return null;
       const s = sched[G.round];
-      const log = beginRound(G.me, s, o.x, fund);
+      const log = beginRound(G.me, s, o.x, fund || (G.manual ? 'manual' : undefined));
       if (o.creep) G.me.incMult *= 1 - o.creep;
       G.choices.push({ r: s.r, y: s.y, id: d.id, t: d.t, i, label: o.label, note: o.note, cost: -o.x * (d.base || s.inc), def: i === d.def,
         fund: log.onCard ? 'card' : 'sell', lotto: !!d.own, creep: o.creep || 0 });
@@ -274,6 +284,7 @@
       if (alloc) G.alloc = Object.assign(emptyH(), alloc);
       if (G.pending) G.choose(G.pending.def);
       const s = sched[G.round];
+      if (G.me.owe > 0) { coverAuto(G.me, s, G.me.owe); G.me.owe = 0; }
       const nwBefore = G.history.length ? G.history[G.history.length - 1].nwAfter : 0;
       const log = G.me.log;
       const res = endRound(G.me, s, G.alloc);
@@ -299,7 +310,22 @@
       return recs;
     };
     // Player-chosen sale during the investing phase. Proceeds join this year's cash pool.
-    G.canSell = k => !G.done && !G.pending && KEYS.includes(k) && G.me.h[k] > 0.5 && !(k === 'ppf' && G.round < PPF_R);
+    // Paying a bill that is due now (manual mode)
+    G.owed = () => G.me.owe || 0;
+    G.canPayWith = k => G.owed() > 0 && G.me.h[k] > 0.5 && !(k === 'ppf' && G.round < PPF_R);
+    G.payWith = function (k) {
+      if (!G.canPayWith(k)) return null;
+      const x = sellFor(G.me, sched[G.round], k, G.me.owe);
+      G.me.owe = Math.max(0, G.me.owe - x.got); if (G.me.owe < 1) G.me.owe = 0;
+      return x;
+    };
+    G.payCard = function () {
+      const amt = G.owed(); if (!amt) return 0;
+      const p = G.me; p.debt += amt; p.log.newDebt += amt; p.log.onCard = true; p.stats.cardYears++; p.owe = 0;
+      if (!p.log.forced) { p.log.forced = true; p.stats.forcedYears++; }
+      return amt;
+    };
+    G.canSell = k => !G.done && !G.pending && !G.owed() && KEYS.includes(k) && G.me.h[k] > 0.5 && !(k === 'ppf' && G.round < PPF_R);
     G.sell = function (k, frac) {
       if (!G.canSell(k)) return null;
       frac = Math.max(0, Math.min(1, +frac || 0)); if (!frac) return null;

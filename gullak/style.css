@@ -360,3 +360,20 @@ body.ouch::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3
 .note.lotto { border: 2px solid #346538; background: #EDF3EC; padding: 10px 12px; animation: lottoPop .6s cubic-bezier(.16,1,.3,1); }
 .note.lotto .amt { font-size: 1.6em; }
 @keyframes lottoPop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* The bill popup */
+#payup{z-index:30}
+.sheet.payup{max-width:640px}
+.sheet.payup h2{font-size:34px}
+.sheet.payup .flash{font:400 15px var(--serif);background:#FDEBEC;color:#9F2F2D;padding:8px 12px;border-left:3px solid #9F2F2D;margin:8px 0}
+.sheet.payup .heckle{font:400 16px var(--hand);color:var(--red);margin:6px 0 12px}
+.payrows{border-top:1px solid var(--rule)}
+.payrow{display:grid;grid-template-columns:1.3fr 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+.payrow .pr-name small,.payrow .pr-hit small{display:block;font:400 12.5px var(--serif);color:var(--mut)}
+.payrow .code{font:500 11px var(--mono);border:1px solid var(--ink);padding:1px 4px;border-radius:3px;margin-right:6px}
+.payrow .pr-hit{font:500 14px var(--serif)}
+.payrow .btn.sell{padding:8px 12px;font-family:var(--mono);white-space:nowrap}
+.payrow.locked{opacity:.5}
+.sheet.payup .btn.card{margin-top:14px;background:#9F2F2D;color:#fff;text-align:left}
+.sheet.payup .btn.card small{display:block;font:400 12.5px var(--serif);opacity:.85}
+@media (max-width:560px){.payrow{grid-template-columns:1fr auto}.payrow .pr-hit{grid-column:1/-1;order:3}}

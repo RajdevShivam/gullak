@@ -83,7 +83,7 @@
   function startGame(name) {
     NAME = (name || '').trim().slice(0, 18) || 'Riya';
     try { localStorage.setItem('gullak-name', NAME); } catch (e) { }
-    G = window.Gullak.createGame(SEED, { name: NAME });
+    G = window.Gullak.createGame(SEED, { name: NAME, manual: true });
     shownNW = 0;
     show('play');
     mountPot($('miniPot'), 0);
@@ -91,7 +91,48 @@
   }
 
   // ---------- Play render ----------
-  function render() { renderTop(); renderPage(); renderJars(); }
+  function render() { renderTop(); renderPage(); renderJars(); if (G.owed() > 0) showPayup(); }
+
+  // ---------- The bill: a shortfall the player must cover, one painful sale at a time ----------
+  const HECKLE = [
+    ['Sharma-ji', '“Never sell in a panic.” He says this from his second SUV.'],
+    ['Kavya', '“Sell the boring stuff. Keep the winners. Obviously.”'],
+    ['FD Uncle', '“This is why I keep everything in FD, beta.”'],
+    ['SIP Aunty', '“Selling the index? At these prices? Hai Ram.”'],
+    ['Arvind on TV', '“Cash is king! Raise cash NOW!”'],
+  ];
+  function showPayup(flash) {
+    const owe = G.owed(), s = G.current(), c = G.choices.find(x => x.r === G.round), l = G.me.log, p = G.me;
+    const why = c ? `${c.t}: ${c.label}` : s.life ? s.life.t : 'This year’s bills';
+    const hk = HECKLE[(G.round + l.sales.length) % HECKLE.length];
+    const rows = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => {
+      const k = a.k, h = p.h[k], mult = k === 'fd' ? 0.99 : 1, sell = Math.min(h, owe / mult);
+      const pnl = sell - p.contrib[k] * sell / h, locked = !G.canPayWith(k);
+      return `<div class="payrow${locked ? ' locked' : ''}"><div class="pr-name"><span class="code">${CODE[k]}</span><b>${esc(a.n)}</b>
+          <small>worth ${inr(h)} · you put in ${inr(p.contrib[k])}</small></div>
+        <div class="pr-hit">${locked ? '<span class="mut">Locked until Year 16</span>'
+          : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>` : '<span class="mut">No gain, no loss</span>'}
+          ${k === 'fd' && !locked ? '<small>1% penalty for breaking it</small>' : ''}${sell >= h - 0.5 && !locked ? '<small>This empties it</small>' : ''}</div>
+        <button class="btn sell" data-pay="${k}" ${locked ? 'disabled' : ''}>Sell ${inr(sell)}</button></div>`;
+    }).join('');
+    $('payupSheet').className = 'sheet payup' + (flash ? ' loss' : '');
+    $('payupSheet').innerHTML = `<div class="kicker">Year ${G.round + 1} · ${esc(why)}</div>
+      <h2><span class="negc mono">${inr(owe)}</span> is due. Now.</h2>
+      <p class="sub">This year’s savings are gone. Pick what to sell, or swipe the card. Nothing else happens until this is paid.</p>
+      ${flash ? `<p class="flash">${flash}</p>` : ''}
+      <p class="heckle"><b>${hk[0]}:</b> ${hk[1]}</p>
+      <div class="payrows">${rows || '<p class="mut">Nothing left to sell.</p>'}</div>
+      <button class="btn card" id="payCard">Swipe the credit card: ${inr(owe)} at ${DRT} a year <small>about ${inr(owe * DR)} interest next year, and the year after…</small></button>`;
+    $('payup').hidden = false;
+    $('payupSheet').querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
+      const x = G.payWith(b.dataset.pay); if (!x) return;
+      sad();
+      const msg = `Sold ${inr(x.amt)} of ${A(x.k).n}` + (x.pnl < -0.5 ? ` and locked in a <b class="negc">${inr(-x.pnl)}</b> loss.` : x.pnl > 0.5 ? `, ${inr(x.pnl)} of it profit.` : '.');
+      if (G.owed() > 0) showPayup(msg); else closePayup();
+    });
+    $('payCard').onclick = () => { G.payCard(); sad(); closePayup(); };
+  }
+  function closePayup() { $('payup').hidden = true; renderTop(); renderPage(); renderJars(); window.scrollTo(0, 0); }
 
   function renderTop() {
     const nw = G.netWorth();
@@ -329,13 +370,12 @@
     $('jars').querySelectorAll('[data-choose]').forEach(b => b.onclick = () => {
       if (!G.pending) return;
       const i = +b.dataset.choose, pv = G.previewChoice(i);
-      if (pv.shortfall > 0.5) renderFunding(i, pv); else commitChoice(i, 'sell');
+      commitChoice(i);
     });
   }
   function commitChoice(i, fund) {
     G.choose(i, fund);
-    const l = G.me.log;
-    if (l.sales.length || l.newDebt) sad(); else clink();
+    if (!G.owed()) clink();
     render();
     window.scrollTo(0, 0);
   }
@@ -399,6 +439,7 @@
   }
   function afterTurn(quiet) {
     $('modal').hidden = true; busy = false;
+    if (quiet && G.owed()) { G.payCard(); }   // test hook: never block scripted play
     if (G.done) { showEnd(); return; }
     render();
     const l = G.me.log;

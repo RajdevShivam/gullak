@@ -274,3 +274,33 @@ test('selling pays off credit-card debt before reinvesting', () => {
   assert.ok(Math.abs(x.repay - Math.min(debt, cash + nifty)) < 1e-6);
   assert.ok(Math.abs(g.me.debt - Math.max(0, debt - cash - nifty)) < 1e-6);
 });
+
+test('manual mode: a shortfall waits; the player picks what to sell, sees the loss, or swipes the card', () => {
+  const g = G.createGame(42, { manual: true });
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ nifty: 1, fd: 1 });
+  const f0 = g.me.stats.forcedYears;
+  g.choose(0);
+  const owe = g.owed();
+  assert.ok(owe > 0, 'big wedding leaves a bill');
+  assert.strictEqual(g.me.log.sales.length, 0, 'nothing sold automatically');
+  assert.strictEqual(g.canSell('nifty'), false);
+  const x = g.payWith('nifty');
+  assert.ok(x && Number.isFinite(x.pnl));
+  assert.ok(Math.abs(g.owed() - Math.max(0, owe - x.got)) < 1);
+  if (g.owed() > 0) g.payWith('fd');
+  if (g.owed() > 0) { const before = g.me.debt; const c = g.payCard(); assert.ok(Math.abs(g.me.debt - before - c) < 1e-6); }
+  assert.strictEqual(g.owed(), 0);
+  assert.strictEqual(g.me.stats.forcedYears, f0 + 1);
+});
+
+test('manual mode: step covers an unpaid bill the old way, and PPF stays locked', () => {
+  const g = G.createGame(42, { manual: true });
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ ppf: 1, sav: 1 });
+  g.choose(0);
+  assert.strictEqual(g.canPayWith('ppf'), false);
+  g.step({ sav: 1 });
+  assert.strictEqual(g.owed(), 0);
+  assert.ok(g.history[g.history.length - 1].log.sales.length > 0 || g.history[g.history.length - 1].log.newDebt > 0);
+});
