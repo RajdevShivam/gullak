@@ -485,7 +485,10 @@
     $('endTitle').textContent = `${NAME} is 45. Time to break the gullak.`;
     $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024</b> — real Indian market history.` +
       `<ul>${G.sched.filter(s => s.event || s.y === 2014).map(s => `<li><span>Year ${s.r + 1} = ${s.y}</span> ${esc(s.news[2])}</li>`).join('')}</ul>` +
-      (G.choices.length ? `<b>Your family decisions</b><ul>${G.choices.map(c => `<li><span>Year ${c.r + 1}</span> ${esc(c.t)}: ${esc(c.label)} <b class="negc">${costTxt(c.cost)}</b></li>`).join('')}</ul>` : '');
+      (G.choices.length ? `<b>Your family decisions</b><ul>${(() => { const w = G.history.find(h => h.log && h.log.lottery);
+        const rows = G.choices.map(c => ({ r: c.r, html: `<li><span>Year ${c.r + 1}</span> ${esc(c.t)}: ${esc(c.label)} <b class="negc">${costTxt(c.cost)}</b></li>` }));
+        if (w) rows.push({ r: w.r - 0.5, html: `<li><span>Year ${w.r + 1}</span> Won the Diwali bumper lottery <b class="pos">+${inr(w.log.lottery)}</b></li>` });
+        return rows.sort((a, b) => a.r - b.r).map(x => x.html).join(''); })()}</ul>` : '');
     $('verdict').textContent = rank === 1 ? `Out spills ${inr(nw.me)} — more than FD Uncle and SIP Aunty. The family WhatsApp group is speechless.`
       : rank === 2 ? `Out spills ${inr(nw.me)}. One relative beaten, one to go — Diwali dinner will be lively.`
       : `Out spills ${inr(nw.me)}. Even FD Uncle did better… he will mention this at every family dinner.`;

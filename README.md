@@ -2,6 +2,8 @@
 
 *A storybook about 20 years of your money.*
 
+![A chapter of Gullak: the ledger page with each investment's return, a forwarded hot tip and the fear/greed gauge](gullak/shot-chapter.png)
+
 Gullak is the clay piggy bank every Indian kid had. In this game you get one: you're 25, and each chapter is a year of your life: twenty years in all. The years are hidden (just Year 1 to Year 20), so you can't game history you remember. It's revealed at the end. Every year your savings arrive, life happens (a cousin's wedding, a medical bill, a Diwali bonus, a layoff), the markets do what they actually did, and you decide where the money goes.
 
 At 45 the gullak cracks open. You're ranked against **FD Uncle**, who kept everything in fixed deposits, and **SIP Aunty**, who put every rupee into a Nifty 50 index fund. Then you get three takeaways drawn from your own run.
