@@ -108,9 +108,11 @@ test('the Rollercoaster (crypto) is gone', () => {
   for (const s of G.createGame(3).sched) assert.strictEqual(s.ret.crypto, 0);
 });
 
-test('hot tips keep the sign of big Nifty years', () => {
-  for (let seed = 1; seed <= 200; seed++) for (const y of G.buildSchedule(seed))
-    if (Math.abs(y.ret.nifty) > 0.2) assert.strictEqual(Math.sign(y.ret.hot), Math.sign(y.ret.nifty));
+test('three hidden stock tips follow their own tables', () => {
+  assert.ok(['hot', 'hot2', 'hot3'].every(k => G.KEYS.includes(k)));
+  for (const s of G.createGame(9).sched)
+    for (const k of ['hot', 'hot2', 'hot3']) assert.ok(Math.abs(s.ret[k] - G.STOCKS[k].r[s.y] / 100) < 1e-12);
+  for (const a of G.ASSETS) assert.ok(!/Yes Bank|Suzlon|Bajaj/.test(a.n + a.f), 'real name leaked: ' + a.n);
 });
 
 test('inr formatting', () => {

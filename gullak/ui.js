@@ -9,8 +9,8 @@
   const RIVAL_COLORS = { me: '#9E2B25', fd: '#2B2A26', sip: '#9A9284' };
   // Ledger theme: assets are ink shades + a short code instead of emoji
   const DR = (window.Gullak.DEBT_RATE || 0.36), DRT = Math.round(DR * 100) + '%';
-  const CODE = { sav: 'SB', fd: 'FD', ppf: 'PF', nifty: 'N50', gold: 'AU', hot: 'HT', crypto: 'RC' };
-  const COL = { sav: '#D6CDB9', fd: '#BCB29D', ppf: '#A09682', nifty: '#2B2A26', gold: '#857C6A', hot: '#625B4E', crypto: '#9E2B25' };
+  const CODE = { sav: 'SB', fd: 'FD', ppf: 'PF', nifty: 'N50', gold: 'AU', hot: 'TA', hot2: 'TB', hot3: 'TC', crypto: 'RC' };
+  const COL = { sav: '#D6CDB9', fd: '#BCB29D', ppf: '#A09682', nifty: '#2B2A26', gold: '#857C6A', hot: '#625B4E', hot2: '#4A443A', hot3: '#9E2B25', crypto: '#9E2B25' };
 
   // ---------- Seed ----------
   const params = new URLSearchParams(location.search);
@@ -244,14 +244,35 @@
     '{tk} delisted. Uncle is now forwarding yoga videos instead.',
   ];
   const tipFor = r => TIPS[((G.seed % 12) + r * 5) % 12];
+  const TIP_KEYS = ['hot', 'hot2', 'hot3'], NAME_OF = { hot: 'Stock A', hot2: 'Stock B', hot3: 'Stock C' };
+  // Forwards that fit each hidden stock's story (the generic pool above stays as fallback flavour).
+  const TIPS_BY = {
+    hot: [
+      { from: 60, to: 400, t: 'Best private bank in India. Fastest loan growth ever. CEO is a genius. Don’t share outside family!!!' },
+      { from: 90, to: 600, t: 'Foreign funds buying. Bank will be bigger than HDFC in 5 years. Sure-shot!!' },
+      { from: 120, to: 1000, t: 'My bank RM himself told me. Put your FD money in this. Safer than FD!!!' },
+      { from: 45, to: 300, t: 'Temporary dip only. Promoter will never let it fall. BUY THE DIP!!!' } ],
+    hot2: [
+      { from: 70, to: 700, t: 'Wind is the future. Next Reliance. Orders from 20 countries. Buy before Monday!!' },
+      { from: 30, to: 300, t: 'Green energy subsidy coming in budget. My CA’s cousin confirmed. Load up!!!' },
+      { from: 12, to: 150, t: 'Penny stock now, multibagger later. Operator is accumulating. Last chance!!!' },
+      { from: 8, to: 100, t: 'Debt restructuring done. Comeback story of the decade. 100% sure-shot!!' } ],
+    hot3: [
+      { from: 40, to: 200, t: 'Small lender, nobody knows it yet. Consumer loans on every TV and fridge. Quiet compounder!!' },
+      { from: 150, to: 900, t: 'Fund managers secretly buying. EMI card in every wallet soon. Hold 10 years!!' },
+      { from: 500, to: 3000, t: 'Boring company, crazy growth. Uncle has held since the start. Don’t sell ever!!!' },
+      { from: 900, to: 5000, t: 'Still cheap for what it is. Long term only. Forward to your children!!' } ],
+  };
+  const tipKey = r => TIP_KEYS[(G.seed + r) % 3];   // this year's WhatsApp forward is about one of the three
   const FWD = '<svg viewBox="0 0 16 12" width="14" height="11" aria-hidden="true"><path d="M9 1l5 4.5L9 10M14 5.5H6C3.5 5.5 2 7 2 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function tipSlip(r) {
-    const t = tipFor(r);
-    return `<div class="slip"><div class="fwd">${FWD} Forwarded many times</div><p><b>${esc(t.co)} (${t.tk})</b> <span class="tgt">₹${t.from} → ₹${t.to}</span> ${esc(t.t)}</p></div>`;
+    const k = tipKey(r), pool = TIPS_BY[k], t = pool[(G.seed + r) % pool.length], nm = NAME_OF[k];
+    return `<div class="slip"><div class="fwd">${FWD} Forwarded many times</div><p><b>${nm}</b> <span class="tgt">₹${t.from} → ₹${t.to}</span> ${esc(t.t)}</p></div>`;
   }
-  function tipOutcome(h) {
-    const t = tipFor(h.r), up = h.ret.hot >= 0, pool = up ? TIP_UP : TIP_DOWN;
-    return { up, t: pool[(h.r + G.seed) % pool.length].split('{tk}').join(t.tk) };
+  function tipOutcome(h, k) {
+    k = k || tipKey(h.r);
+    const up = h.ret[k] >= 0, pool = up ? TIP_UP : TIP_DOWN;
+    return { up, t: pool[(h.r + G.seed) % pool.length].split('{tk}').join(NAME_OF[k]) };
   }
 
   function renderPage() {
@@ -327,9 +348,9 @@
           const perf = last && enabled(a.k, last.r) ? `<div class="perf ${held && last.pnl[a.k] < -0.5 ? 'hit' : held && last.pnl[a.k] > 0.5 && last.ret[a.k] >= 0.25 ? 'win' : ''}">${retChip(a.k, last.ret[a.k])}` +
             (held ? `<span>last yr <b class="${last.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(last.pnl[a.k])}</b></span><span>overall <b class="${overall < 0 ? 'negc' : 'pos'}">${signed(overall)}</b></span>` : `<span>last year</span>`) + `</div>` : '';
           let notes = '';
-          if (a.k === 'hot' && on) {
-            if (lastH && enabled('hot', lastH.r)) { const o = tipOutcome(lastH); notes += `<div class="outcome ${o.up ? 'pos' : 'negc'}">${esc(o.t)}</div>`; }
-            notes += tipSlip(r);
+          if (TIP_KEYS.includes(a.k) && on) {
+            if (lastH && tipKey(lastH.r) === a.k) { const o = tipOutcome(lastH, a.k); notes += `<div class="outcome ${o.up ? 'pos' : 'negc'}">${esc(o.t)}</div>`; }
+            if (tipKey(r) === a.k) notes += tipSlip(r);
           }
           notes += vs.filter(q => q.k === a.k).map(quoteHTML).join('');
           const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>1% penalty</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
@@ -381,7 +402,7 @@
   }
   // Which jars a forced sale would empty (same order as game.js; preview only)
   function salePlan(need) {
-    const order = G.round >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'], out = [];
+    const order = G.round >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'hot2', 'hot3'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'hot2', 'hot3'], out = [];
     for (const k of order) {
       if (need <= 0) break;
       const avail = G.me.h[k]; if (avail <= 0.5) continue;
@@ -452,7 +473,7 @@
     const held = ASSETS.filter(a => enabled(a.k, rec.r) && (Math.abs(rec.pnl[a.k]) > 0.5 || rec.shares[a.k] > 0));
     const rows = held.map((a, i) => {
       const overall = G.me.h[a.k] - G.me.contrib[a.k];
-      const o = a.k === 'hot' ? tipOutcome(rec) : null;
+      const o = a.k === tipKey(rec.r) ? tipOutcome(rec, a.k) : null;
       return `<div class="rrow" style="animation-delay:${0.45 + i * 0.12}s"><span>${a.n}</span>${retChip(a.k, rec.ret[a.k])}<b class="${rec.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(rec.pnl[a.k])}</b><small>${signed(overall)} overall</small>${o ? `<div class="outcome ${o.up ? 'pos' : 'negc'}">${esc(o.t)}</div>` : ''}</div>`;
     }).join('');
     $('sheet').className = 'sheet ' + (gain < 0 ? 'loss' : 'win');
@@ -524,7 +545,9 @@
     const res = [{ n: NAME, v: nw.me, me: 1 }, { n: 'FD Uncle', v: nw.fd }, { n: 'SIP Aunty', v: nw.sip }].sort((a, b) => b.v - a.v);
     const rank = res.findIndex(x => x.me) + 1;
     $('endTitle').textContent = `${NAME} is 45. Time to break the gullak.`;
+    const ST = window.Gullak.STOCKS;
     $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024</b> — real Indian market history.` +
+      `<p class="stockreveal">The three stock tips: <b>A was ${ST.hot.real}</b> (${ST.hot.story}), <b>B was ${ST.hot2.real}</b> (${ST.hot2.story}), and <b>C was ${ST.hot3.real}</b> (${ST.hot3.story}). Returns are stylised, not exact prices.</p>` +
       `<ul>${G.sched.filter(s => s.event || s.y === 2014).map(s => `<li><span>Year ${s.r + 1} = ${s.y}</span> ${esc(s.news[2])}</li>`).join('')}</ul>` +
       (G.choices.length ? `<b>Your family decisions</b><ul>${(() => { const w = G.history.find(h => h.log && h.log.lottery);
         const rows = G.choices.map(c => ({ r: c.r, html: `<li><span>Year ${c.r + 1}</span> ${esc(c.t)}: ${esc(c.label)} <b class="negc">${costTxt(c.cost)}</b></li>` }));
@@ -578,7 +601,7 @@
     get state() { return G; },
     get seed() { return SEED; },
     start: name => startGame(name),
-    next: alloc => { if (!G) startGame(NAME); if (alloc) G.alloc = Object.assign({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, crypto: 0 }, alloc); return invest(true); },
+    next: alloc => { if (!G) startGame(NAME); if (alloc) G.alloc = Object.assign({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, hot2: 0, hot3: 0, crypto: 0 }, alloc); return invest(true); },
     ff: () => { if (!G) startGame(NAME); return fastForward(true); },
     netWorth: () => G && G.netWorth(),
   };

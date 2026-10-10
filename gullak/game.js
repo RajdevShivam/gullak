@@ -29,7 +29,9 @@
     { k: 'ppf', n: 'PPF', i: '🔒', c: '#2f6b4f', f: 'Govt savings scheme. ~7.5%, tax-free, locked for 15 years (till Year 16).' },
     { k: 'nifty', n: 'Nifty 50 index fund', i: '📈', c: '#c4553a', f: "A tiny slice of India's 50 biggest companies. Grows over time, some years hurt." },
     { k: 'gold', n: 'Gold', i: '🪙', c: '#e3a33b', f: 'What Nani trusts. Often shines when stocks panic.' },
-    { k: 'hot', n: 'Hot stock tips', i: '🔥', c: '#e0782f', f: 'Tips from the family WhatsApp group. Like the index, but louder.' },
+    { k: 'hot', n: 'Stock tip A', i: '🔥', c: '#e0782f', f: '“The private bank every uncle swears by.” Real name revealed at the end.' },
+    { k: 'hot2', n: 'Stock tip B', i: '🔥', c: '#c4562a', f: '“The green-energy rocket. The next big thing.” Real name revealed at the end.' },
+    { k: 'hot3', n: 'Stock tip C', i: '🔥', c: '#a8431f', f: '“A quiet lending company nobody at the party has heard of.” Real name revealed at the end.' },
   ];
   const KEYS = ASSETS.map(a => a.k);
   const SAFE_RET = { sav: 0.03, fd: 0.07, ppf: 0.075 };
@@ -38,6 +40,16 @@
   const NIFTY = { 2005: 36, 2006: 40, 2007: 55, 2008: -52, 2009: 76, 2010: 18, 2011: -25, 2012: 28, 2013: 7, 2014: 31, 2015: -4, 2016: 3, 2017: 29, 2018: 3, 2019: 12, 2020: 15, 2021: 24, 2022: 4, 2023: 20, 2024: 9 };
   const GOLD = { 2005: 20, 2006: 22, 2007: 17, 2008: 30, 2009: 24, 2010: 23, 2011: 32, 2012: 12, 2013: -5, 2014: -8, 2015: -6, 2016: 11, 2017: 5, 2018: 7, 2019: 24, 2020: 28, 2021: -4, 2022: 14, 2023: 15, 2024: 21 };
   // Approx. real Bitcoin yearly returns in INR, %
+  // Three single stocks, hidden during play. Stylised yearly returns (%) shaped on real Indian stock stories —
+  // not exact prices. Revealed on the end screen.
+  const STOCKS = {
+    hot:  { real: 'Yes Bank', story: 'the star private bank that collapsed in 2019–20',
+      r: { 2005: 60, 2006: 50, 2007: 40, 2008: -60, 2009: 120, 2010: 30, 2011: -20, 2012: 50, 2013: -20, 2014: 80, 2015: 10, 2016: 50, 2017: 30, 2018: -30, 2019: -80, 2020: -60, 2021: -10, 2022: 5, 2023: 10, 2024: 5 } },
+    hot2: { real: 'Suzlon Energy', story: 'the wind-energy darling that crashed over 95%, then came roaring back',
+      r: { 2005: 80, 2006: 100, 2007: 60, 2008: -80, 2009: 30, 2010: -40, 2011: -50, 2012: -30, 2013: -40, 2014: 80, 2015: 20, 2016: -20, 2017: -10, 2018: -60, 2019: -40, 2020: 20, 2021: 60, 2022: 20, 2023: 350, 2024: 60 } },
+    hot3: { real: 'Bajaj Finance', story: 'the quiet lender that became one of India’s biggest compounders',
+      r: { 2005: 20, 2006: 10, 2007: 30, 2008: -60, 2009: 250, 2010: 100, 2011: 30, 2012: 80, 2013: 5, 2014: 130, 2015: 60, 2016: 60, 2017: 100, 2018: 50, 2019: 60, 2020: 20, 2021: 30, 2022: -5, 2023: -5, 2024: 0 } },
+  };
   const CRYPTO = { 2014: -56, 2015: 45, 2016: 128, 2017: 1200, 2018: -71, 2019: 97, 2020: 310, 2021: 62, 2022: -58, 2023: 157, 2024: 125 };
   // Big scripted market years: fast-forward stops before these so the player can react
   const EVENT_YEARS = [2008, 2009, 2013, 2016, 2017, 2020, 2022];
@@ -132,9 +144,8 @@
       const y = START_YEAR + r;
       if (r > 0) base *= 1 + RAISE;
       const nifty = NIFTY[y] / 100, gold = GOLD[y] / 100;
-      let hot = nifty * 1.5 + rng.gauss() * 0.25;
-      if (Math.abs(nifty) > 0.2 && Math.sign(hot) !== Math.sign(nifty)) hot = nifty * 0.75; // noise can't flip big years
-      hot = Math.max(-0.8, hot);
+      rng.gauss();   // keep the seeded stream identical to earlier versions
+      const hot = STOCKS.hot.r[y] / 100, hot2 = STOCKS.hot2.r[y] / 100, hot3 = STOCKS.hot3.r[y] / 100;
       const crypto = 0;   // the Rollercoaster was removed from the game
       const roll = rng(), pick = Math.floor(rng() * LIFE.length);
       let life = null;
@@ -143,7 +154,7 @@
       const inc = base;
       if (life && life.promo) base *= 1 + PROMO;
       out.push({ r, y, age: START_AGE + r, news: NEWS[y], event: EVENT_YEARS.includes(y), life, inc: life && life.promo ? base : inc,
-        ret: { sav: SAFE_RET.sav, fd: SAFE_RET.fd, ppf: SAFE_RET.ppf, nifty, gold, hot, crypto } });
+        ret: { sav: SAFE_RET.sav, fd: SAFE_RET.fd, ppf: SAFE_RET.ppf, nifty, gold, hot, hot2, hot3, crypto } });
     }
     const drng = makeRng((seed ^ 0x9e3779b9) >>> 0);   // separate stream so market/life rolls stay unchanged
     for (const d of DILEMMAS) {
@@ -167,7 +178,7 @@
   }
 
   const enabled = (k, r) => !(k === 'crypto' && r < CRYPTO_R);
-  const emptyH = () => ({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, crypto: 0 });
+  const emptyH = () => ({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, hot2: 0, hot3: 0, crypto: 0 });
   function newPlayer() {
     return { h: emptyH(), contrib: emptyH(), debt: 0, cash: 0, nwHist: [], log: null,
       incMult: 1, lucky: false,
@@ -211,7 +222,7 @@
   }
   // The old automatic order: safest first, then the card.
   function coverAuto(p, s, need) {
-    const order = s.r >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'];
+    const order = s.r >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'hot2', 'hot3'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'hot2', 'hot3'];
     for (const k of order) { if (need < 1e-6) break; const x = sellFor(p, s, k, need); if (x) need -= x.got; }
     if (need > 1e-6) {
       p.debt += need; p.log.newDebt += need;
@@ -248,7 +259,7 @@
       name: (opts && opts.name) || 'Riya',
       me: Object.assign(newPlayer(), { lucky: true }), fd: newPlayer(), sip: newPlayer(),
       manual: !!(opts && opts.manual),   // UI mode: shortfalls wait for the player to choose what to sell
-      alloc: { sav: 30, fd: 30, ppf: 0, nifty: 40, gold: 0, hot: 0, crypto: 0 },
+      alloc: { sav: 30, fd: 30, ppf: 0, nifty: 40, gold: 0, hot: 0, hot2: 0, hot3: 0, crypto: 0 },
       history: [], choices: [], pending: null,
     };
     function start() {
@@ -416,7 +427,7 @@
     for (let i = 1; i < H.length; i++) {
       const prev = H[i - 1], cur = H[i];
       if (prev.ret.nifty > -0.2) continue;
-      const eq = h => h.shares.nifty + h.shares.hot;
+      const eq = h => h.shares.nifty + h.shares.hot + h.shares.hot2 + h.shares.hot3;
       const drop = eq(prev) - eq(cur);
       if (drop < 0.15 || cur.invested <= 0) continue;
       let grow = 1, safe = 1;
@@ -428,10 +439,10 @@
       title: 'The panic tax',
       text: `After the ${panic.crashY} crash, ${name} cut stocks by ${Math.round(panic.drop * 100)} points in ${panic.y} — right before the rebound. That flinch cost about ${inr(panic.missed)} by the end.` });
     // 5. Hot tips
-    for (const k of ['hot']) {
-      const gain = me.h[k] - me.contrib[k];
+    for (const k of ['hot', 'hot2', 'hot3']) {
+      const gain = me.h[k] - me.contrib[k], nm = `${A(k).n} (${STOCKS[k].real})`;
       if (me.contrib[k] > 1000) out.push({ id: k, icon: A(k).i, impact: Math.abs(gain),
-        title: gain >= 0 ? `${A(k).n} paid off` : `${A(k).n} bit back`,
+        title: gain >= 0 ? `${nm} paid off` : `${nm} bit back`,
         text: gain >= 0 ? `${A(k).n} turned ${inr(me.contrib[k])} into ${inr(me.h[k])}. Lucky this time — the ride was wild, and it doesn’t always end this way.`
           : `${inr(me.contrib[k])} went into ${A(k).n}; ${inr(me.h[k])} is left. Exciting is not the same as profitable.` });
     }
@@ -471,7 +482,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
+  const api = { STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;
