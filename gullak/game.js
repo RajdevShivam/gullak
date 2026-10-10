@@ -21,7 +21,7 @@
   const R = 20, START_YEAR = 2005, START_AGE = 25;
   const CRYPTO_R = 9;   // 2014
   const PPF_R = 15;     // 2020 — 15 years after 2005
-  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.18, FD_PENALTY = 0.01;
+  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.36, FD_PENALTY = 0.01;   // cards charge ~3% a month
 
   const ASSETS = [
     { k: 'sav', n: 'Savings account', i: '🏦', c: '#7b9cc4', f: 'Your bank account. Safe, ~3% a year, take it out anytime.' },
@@ -80,6 +80,30 @@
     { id: 'goa', t: 'Goa trip with friends', e: '🏖️', x: -0.35, s: 'The friends finally do the Goa trip. Worth every rupee, {n} insists.' },
   ];
 
+  // Big life decisions the player must make before investing that year. x = multiple of this year's salary savings.
+  // `at` = possible rounds (seeded pick); `def` = the option FD Uncle and SIP Aunty take.
+  const DILEMMAS = [
+    { id: 'wedding', at: [3, 4, 5], def: 1, t: 'The wedding', s: '{n} is getting married! Mummy has already booked the astrologer, and the guest list is at 600 and climbing.',
+      options: [
+        { label: 'Big fat wedding: three days, 600 guests, the band, the horse', x: -3.0, note: 'Mummy cries happy tears. Relatives talk about the paneer for years.' },
+        { label: 'Respectable wedding: one grand reception', x: -1.5, note: 'Sensible. Bua-ji still says the sweets were just okay.' },
+        { label: 'Court marriage and dinner for close family', x: -0.3, note: 'Cheap and lovely. Some relatives have quietly stopped calling.' } ] },
+    { id: 'car', at: [6, 7], def: 1, t: 'The car question', s: 'Every colleague now drives an SUV. Sharma-ji just bought his second one.',
+      options: [
+        { label: 'New SUV, top variant', x: -1.6, note: 'Everyone in the society notices. So does the EMI.' },
+        { label: 'Sensible hatchback', x: -0.6, note: 'Fits in the parking spot, and in the budget.' },
+        { label: 'Keep the old scooter', x: 0, note: 'The scooter coughs every morning, but it is paid for.' } ] },
+    { id: 'sister', at: [9, 10, 11], def: 1, t: 'Sister’s wedding', s: '{n}’s sister is getting married, and Papa quietly asks how much {n} can help with.',
+      options: [
+        { label: 'Pay for half the wedding', x: -2.0, note: 'Papa hugs {n} for the first time in years.' },
+        { label: 'Gift her a gold set', x: -0.8, note: 'The set is admired at every function. Twice.' },
+        { label: 'A generous envelope', x: -0.2, note: 'Mummy says nothing. That is worse.' } ] },
+    { id: 'surgery', at: [13, 14], def: 0, t: 'Papa’s surgery', s: 'The doctor says Papa needs knee surgery. The private hospital can do it next week. The government hospital has a waiting list.',
+      options: [
+        { label: 'Private hospital, next week', x: -1.5, note: 'Papa walks to the gate on his own within a month.' },
+        { label: 'Wait for the government hospital', x: -0.3, note: 'Six months on the list. Papa says he is fine. He is not.' } ] },
+  ];
+
   // ---------- Schedule (all randomness decided up front from the seed) ----------
   function buildSchedule(seed) {
     const rng = makeRng(seed >>> 0);
@@ -101,6 +125,12 @@
       out.push({ r, y, age: START_AGE + r, news: NEWS[y], event: EVENT_YEARS.includes(y), life, inc: life && life.promo ? base : inc,
         ret: { sav: SAFE_RET.sav, fd: SAFE_RET.fd, ppf: SAFE_RET.ppf, nifty, gold, hot, crypto } });
     }
+    const drng = makeRng((seed ^ 0x9e3779b9) >>> 0);   // separate stream so market/life rolls stay unchanged
+    for (const d of DILEMMAS) {
+      const s = out[d.at[Math.floor(drng() * d.at.length)]];
+      s.choice = d;
+      if (s.life && !s.life.promo) s.life = null;   // one family drama per year
+    }
     return out;
   }
 
@@ -108,16 +138,21 @@
   const emptyH = () => ({ sav: 0, fd: 0, ppf: 0, nifty: 0, gold: 0, hot: 0, crypto: 0 });
   function newPlayer() {
     return { h: emptyH(), contrib: emptyH(), debt: 0, cash: 0, nwHist: [], log: null,
-      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0 } };
+      stats: { penalty: 0, interest: 0, sold: 0, soldRisky: 0, forcedYears: 0, chosenSold: 0, cardYears: 0 } };
   }
   const netWorth = p => KEYS.reduce((a, k) => a + p.h[k], 0) - p.debt;
 
-  function beginRound(p, s) {
-    const log = { income: 0, life: 0, debtPaid: 0, sales: [], newDebt: 0, sells: [] };
+  // fund: how a shortfall is covered. 'sell' (default) force-sells investments; 'card' puts it all on the credit card.
+  function beginRound(p, s, choiceX, fund) {
+    const log = { income: 0, life: 0, choice: 0, debtPaid: 0, sales: [], newDebt: 0, sells: [] };
     log.income = s.life && s.life.laid ? 0 : s.inc;
     log.life = s.life ? s.life.x * s.inc : 0;
-    let cash = log.income + log.life;
+    log.choice = (choiceX || 0) * s.inc;
+    let cash = log.income + log.life + log.choice;
     if (cash > 0 && p.debt > 0) { const pay = Math.min(cash, p.debt); p.debt -= pay; cash -= pay; log.debtPaid = pay; }
+    if (cash < 0 && fund === 'card') {
+      p.debt += -cash; log.newDebt = -cash; log.onCard = true; p.stats.cardYears++; cash = 0;
+    }
     if (cash < 0) {
       let need = -cash; cash = 0;
       const order = s.r >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'];
@@ -169,23 +204,43 @@
       name: (opts && opts.name) || 'Riya',
       me: newPlayer(), fd: newPlayer(), sip: newPlayer(),
       alloc: { sav: 30, fd: 30, ppf: 0, nifty: 40, gold: 0, hot: 0, crypto: 0 },
-      history: [],
+      history: [], choices: [], pending: null,
     };
     function start() {
       const s = sched[G.round];
-      beginRound(G.me, s); beginRound(G.fd, s); beginRound(G.sip, s);
+      const defX = s.choice ? s.choice.options[s.choice.def].x : 0;
+      beginRound(G.fd, s, defX); beginRound(G.sip, s, defX);
+      if (s.choice) G.pending = s.choice;   // the player's round begins once they choose
+      else beginRound(G.me, s);
     }
+    // What an option would do, without committing: its cost and how much would have to be force-sold.
+    G.previewChoice = function (i) {
+      const s = sched[G.round], o = G.pending && G.pending.options[i];
+      if (!o) return null;
+      const income = s.life && s.life.laid ? 0 : s.inc, life = s.life ? s.life.x * s.inc : 0, cost = -o.x * s.inc;
+      return { cost, shortfall: Math.max(0, cost - income - life) };
+    };
+    G.choose = function (i, fund) {
+      const d = G.pending, o = d && d.options[i];
+      if (!o) return null;
+      const s = sched[G.round];
+      const log = beginRound(G.me, s, o.x, fund);
+      G.choices.push({ r: s.r, y: s.y, id: d.id, t: d.t, i, label: o.label, note: o.note, cost: -o.x * s.inc, def: i === d.def, fund: log.onCard ? 'card' : 'sell' });
+      G.pending = null;
+      return log;
+    };
     G.current = () => sched[Math.min(G.round, R - 1)];
     G.netWorth = () => ({ me: netWorth(G.me), fd: netWorth(G.fd), sip: netWorth(G.sip) });
     G.step = function (alloc) {
       if (G.done) return null;
       if (alloc) G.alloc = Object.assign(emptyH(), alloc);
+      if (G.pending) G.choose(G.pending.def);
       const s = sched[G.round];
       const nwBefore = G.history.length ? G.history[G.history.length - 1].nwAfter : 0;
       const log = G.me.log;
       const res = endRound(G.me, s, G.alloc);
       endRound(G.fd, s, { fd: 1 }); endRound(G.sip, s, { nifty: 1 });
-      const rec = { r: s.r, y: s.y, age: s.age, news: s.news, life: s.life, log, sells: log.sells, ret: s.ret,
+      const rec = { r: s.r, y: s.y, age: s.age, news: s.news, life: s.life, choice: G.choices.find(c => c.r === s.r) || null, log, sells: log.sells, ret: s.ret,
         shares: res.shares, invested: res.invested, pnl: res.pnl, interest: res.interest,
         nwBefore, nwAfter: netWorth(G.me), fdAfter: netWorth(G.fd), sipAfter: netWorth(G.sip) };
       G.history.push(rec);
@@ -193,11 +248,11 @@
       if (G.round >= R) G.done = true; else start();
       return rec;
     };
-    // Skip up to 5 years, never the final year, and stop before the next big market event.
+    // Skip up to 5 years, never the final year, and stop before the next big market event or life decision.
     G.ffYears = () => {
       const max = Math.max(0, Math.min(5, R - 1 - G.round));
       let n = 0;
-      while (n < max && (n === 0 || !sched[G.round + n].event)) n++;
+      while (n < max && (n === 0 || !(sched[G.round + n].event || sched[G.round + n].choice))) n++;
       return n;
     };
     G.ff = function (alloc) {
@@ -206,7 +261,7 @@
       return recs;
     };
     // Player-chosen sale during the investing phase. Proceeds join this year's cash pool.
-    G.canSell = k => !G.done && KEYS.includes(k) && G.me.h[k] > 0.5 && !(k === 'ppf' && G.round < PPF_R);
+    G.canSell = k => !G.done && !G.pending && KEYS.includes(k) && G.me.h[k] > 0.5 && !(k === 'ppf' && G.round < PPF_R);
     G.sell = function (k, frac) {
       if (!G.canSell(k)) return null;
       frac = Math.max(0, Math.min(1, +frac || 0)); if (!frac) return null;
@@ -234,6 +289,7 @@
   const fill = (t, name) => t.replace(/\{n\}/g, name);
   function chapter(s, name) {
     const parts = [fill(s.news[1], name)];
+    if (s.choice) parts.push(fill(s.choice.s, name));
     if (s.life) parts.push(fill(s.life.s, name));
     return { title: `Chapter ${s.r + 1} · Year ${s.r + 1}`, sub: `${name} is ${s.age}.`, headline: s.news[0], text: parts.join(' ') };
   }
@@ -327,6 +383,17 @@
         text: gain >= 0 ? `${A(k).n} turned ${inr(me.contrib[k])} into ${inr(me.h[k])}. Lucky this time — the ride was wild, and it doesn’t always end this way.`
           : `${inr(me.contrib[k])} went into ${A(k).n}; ${inr(me.h[k])} is left. Exciting is not the same as profitable.` });
     }
+    // 5a. Credit card
+    if (st.interest > 10000) out.push({ id: 'debt', icon: '💳', impact: st.interest * 1.5,
+      title: 'The credit card always wins',
+      text: `${name} paid ${inr(st.interest)} in credit-card interest at 36% a year. No investment in this game reliably beats that rate. Clear the card first, invest second.` });
+    // 5b. Big life decisions: what the money would have become in the index
+    const growth = r => H.filter(h => h.r >= r).reduce((g, h) => g * (1 + h.ret.nifty), 1);
+    let big = null;
+    for (const c of G.choices) if (c.cost > 0) { const fv = c.cost * growth(c.r); if (!big || fv > big.fv) big = Object.assign({ fv }, c); }
+    if (big && big.fv > big.cost * 1.5) out.push({ id: 'choice', icon: '💍', impact: (big.fv - big.cost) * 0.5,
+      title: 'The real price of a big day',
+      text: `${big.t} in Year ${big.r + 1} cost ${inr(big.cost)} (${big.label.split(':')[0].toLowerCase()}). Left in the Nifty 50 instead, it would be ${inr(big.fv)} today. ${fill(big.note, name)}` });
     // 6. PPF
     const ppfGain = me.h.ppf - me.contrib.ppf;
     if (ppfGain > 1000) out.push({ id: 'ppf', icon: '🔒', impact: ppfGain * 0.3,
@@ -342,7 +409,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE,
+  const api = { DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;

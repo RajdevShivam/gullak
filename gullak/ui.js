@@ -6,7 +6,11 @@
   const A = k => ASSETS.find(a => a.k === k);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const pct = x => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x * 100).toFixed(Math.abs(x) < 0.1 && x !== 0 ? 1 : 0) + '%';
-  const RIVAL_COLORS = { me: '#c4553a', fd: '#2f6b4f', sip: '#e8a33b' };
+  const RIVAL_COLORS = { me: '#9E2B25', fd: '#2B2A26', sip: '#9A9284' };
+  // Ledger theme: assets are ink shades + a short code instead of emoji
+  const DR = (window.Gullak.DEBT_RATE || 0.36), DRT = Math.round(DR * 100) + '%';
+  const CODE = { sav: 'SB', fd: 'FD', ppf: 'PF', nifty: 'N50', gold: 'AU', hot: 'HT', crypto: 'RC' };
+  const COL = { sav: '#D6CDB9', fd: '#BCB29D', ppf: '#A09682', nifty: '#2B2A26', gold: '#857C6A', hot: '#625B4E', crypto: '#9E2B25' };
 
   // ---------- Seed ----------
   const params = new URLSearchParams(location.search);
@@ -23,27 +27,20 @@
     let coins = '';
     for (let row = 0; row < 12; row++) for (let c = 0; c < 8; c++) {
       const x = 30 + c * 20 + (row % 2) * 10, y = 186 - row * 13;
-      coins += `<ellipse cx="${x}" cy="${y}" rx="10" ry="5.5" fill="${(row + c) % 3 ? '#f0b54a' : '#ffd77a'}" stroke="#b77a1e" stroke-width="1.2"/>`;
+      coins += `<ellipse cx="${x}" cy="${y}" rx="10" ry="5.5" fill="#F4EDDC" stroke="#2B2A26" stroke-width="1.1"/>`;
     }
     return `<svg viewBox="0 0 200 210" aria-hidden="true">
-      <defs>
-        <radialGradient id="${id}b" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#e98a5f"/><stop offset=".55" stop-color="#c4553a"/><stop offset="1" stop-color="#8e3522"/></radialGradient>
-        <clipPath id="${id}c"><circle cx="100" cy="118" r="70"/></clipPath>
-      </defs>
-      <ellipse cx="100" cy="196" rx="62" ry="8" fill="rgba(90,50,20,.18)"/>
-      <circle cx="100" cy="118" r="72" fill="url(#${id}b)"/>
-      <g clip-path="url(#${id}c)" opacity=".92"><g class="coins" style="transform:translateY(${(1 - lv) * 150}px)">
-        <rect x="20" y="40" width="160" height="160" fill="#e8a33b"/>${coins}
-        <rect x="20" y="40" width="160" height="4" fill="#ffe7a8"/></g></g>
-      <circle cx="100" cy="118" r="72" fill="none" stroke="#8e3522" stroke-width="3"/>
-      <path d="M38 132 Q100 150 162 132" fill="none" stroke="#f6e3c2" stroke-width="4" stroke-dasharray="1 9" stroke-linecap="round" opacity=".9"/>
-      <path d="M44 146 Q100 166 156 146" fill="none" stroke="#e8a33b" stroke-width="3" opacity=".75"/>
-      <path d="M78 54 Q80 34 100 32 Q120 34 122 54 Z" fill="#b5492f" stroke="#8e3522" stroke-width="3"/>
-      <ellipse cx="100" cy="32" rx="16" ry="6" fill="#d06a4b" stroke="#8e3522" stroke-width="3"/>
-      <rect x="80" y="66" width="40" height="8" rx="4" fill="#3a1f14"/>
-      <ellipse class="slotcoin" cx="100" cy="62" rx="9" ry="3.5" fill="#f0b54a" stroke="#b77a1e" opacity="0"/>
-      <ellipse cx="68" cy="86" rx="14" ry="8" fill="#fff" opacity=".22" transform="rotate(-30 68 86)"/>
-      <path class="crackline" d="M104 76 L112 98 L94 118 L114 140 L96 162 L104 188" fill="none" stroke="#2a120a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <defs><clipPath id="${id}c"><circle cx="100" cy="118" r="69"/></clipPath></defs>
+      <ellipse cx="100" cy="198" rx="58" ry="6" fill="#2B2A26" opacity=".12"/>
+      <circle cx="100" cy="118" r="72" fill="#9E2B25"/>
+      <g clip-path="url(#${id}c)"><g class="coins" style="transform:translateY(${(1 - lv) * 150}px)">
+        <rect x="20" y="40" width="160" height="160" fill="#E9DFC8"/>${coins}</g></g>
+      <circle cx="100" cy="118" r="72" fill="none" stroke="#2B2A26" stroke-width="3"/>
+      <path d="M78 54 Q80 36 100 34 Q120 36 122 54 Z" fill="#7A1F1A" stroke="#2B2A26" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="100" cy="34" rx="15" ry="5" fill="#9E2B25" stroke="#2B2A26" stroke-width="3"/>
+      <rect x="80" y="66" width="40" height="7" rx="2" fill="#2B2A26"/>
+      <ellipse class="slotcoin" cx="100" cy="62" rx="9" ry="3.5" fill="#F4EDDC" stroke="#2B2A26" opacity="0"/>
+      <path class="crackline" d="M104 76 L112 98 L94 118 L114 140 L96 162 L104 188" fill="none" stroke="#2B2A26" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
     </svg>`;
   }
   function mountPot(el, nw) { el.classList.add('pot'); el.innerHTML = potSVG(level(nw)); glow(el, nw); }
@@ -53,7 +50,7 @@
     glow(el, nw);
     if (drop) { el.classList.remove('drop', 'wobble'); void el.offsetWidth; el.classList.add(nw < 0 ? 'wobble' : 'drop'); }
   }
-  function glow(el, nw) { const lv = level(nw); el.style.filter = lv > 0.05 ? `drop-shadow(0 0 ${4 + lv * 18}px rgba(232,163,59,${0.25 + lv * 0.5}))` : 'none'; }
+  function glow(el) { el.style.filter = 'none'; }
 
   // ---------- Sound (tiny, optional) ----------
   let AC = null;
@@ -101,12 +98,14 @@
     $('beads').innerHTML = G.sched.map((s, i) => `<i class="${i < G.round ? 'done' : i === G.round ? 'cur' : ''} ${s.event ? 'ev' : ''}" title="Year ${i + 1}"></i>`).join('');
     const el = $('nw');
     if (shownNW !== nw.me) { countUp(el, shownNW, nw.me, 700); shownNW = nw.me; } else { el.textContent = inr(nw.me); el.classList.toggle('neg', nw.me < 0); }
-    $('rivals').innerHTML = `<span>👴 FD Uncle <b>${inr(nw.fd)}</b></span><span>👩 SIP Aunty <b>${inr(nw.sip)}</b></span>`;
+    $('rivals').innerHTML = `<span>FD Uncle <b>${inr(nw.fd)}</b></span><span>SIP Aunty <b>${inr(nw.sip)}</b></span>` +
+      (G.me.debt > 0.5 ? `<span class="debtrow">Credit card <b>−${inr(G.me.debt)}</b> at ${DRT}</span>` : '');
     setPot($('miniPot'), nw.me);
     renderGauge();
+    $('taunt').innerHTML = voices().filter(q => !q.k).slice(0, 1).map(quoteHTML).join('');
     const p = G.me, tot = KEYS.reduce((a, k) => a + p.h[k], 0) + p.debt;
-    let bars = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => `<div style="flex-grow:${p.h[a.k] / tot};background:${a.c}" title="${a.n}: ${inr(p.h[a.k])}"></div>`).join('');
-    if (p.debt > 0.5) bars += `<div style="flex-grow:${p.debt / tot};background:repeating-linear-gradient(45deg,#b13b2c 0 6px,#d9604f 6px 12px)" title="Credit-card debt: ${inr(p.debt)}"></div>`;
+    let bars = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => `<div style="flex-grow:${p.h[a.k] / tot};background:${COL[a.k]}" title="${a.n}: ${inr(p.h[a.k])}"></div>`).join('');
+    if (p.debt > 0.5) bars += `<div style="flex-grow:${p.debt / tot};background:#9F2F2D;opacity:.6" title="Credit-card debt: ${inr(p.debt)}"></div>`;
     $('inside').innerHTML = bars;
     $('inside').title = 'What’s inside the gullak';
   }
@@ -125,23 +124,20 @@
     return Math.tanh(1.8 * last.ret.nifty + 0.25 * last.ret.crypto + 0.5 * (last.ret.hot - last.ret.nifty));
   }
   function renderGauge() {
-    const m = mood(), ang = m * 80, word = m < -0.5 ? 'Panic' : m < -0.15 ? 'Fear' : m > 0.5 ? 'Mania' : m > 0.15 ? 'Greed' : 'Calm';
-    $('gauge').innerHTML = `<svg viewBox="0 0 120 70" aria-hidden="true">
-      <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#b13b2c"/><stop offset=".5" stop-color="#ecd9b0"/><stop offset="1" stop-color="#2f6b4f"/></linearGradient></defs>
-      <path d="M12 62 A48 48 0 0 1 108 62" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round"/>
-      <g class="needle" style="transform:rotate(${ang}deg)"><line x1="60" y1="62" x2="60" y2="22" stroke="#3a281d" stroke-width="4" stroke-linecap="round"/></g>
-      <circle cx="60" cy="62" r="6" fill="#3a281d"/></svg><div class="gw"><small>Fear</small><b>${word}</b><small>Greed</small></div>`;
+    const m = mood(), word = m < -0.5 ? 'Panic' : m < -0.15 ? 'Fear' : m > 0.5 ? 'Mania' : m > 0.15 ? 'Greed' : 'Calm';
+    const ticks = [0, 25, 50, 75, 100].map(x => `<i class="${x === 50 ? 'mid' : ''}" style="left:${x}%"></i>`).join('');
+    $('gauge').innerHTML = `<div class="gw"><span>fear</span><span>greed</span></div><div class="scale">${ticks}<span class="needle" style="left:${(50 + m * 50).toFixed(1)}%"></span></div><span class="word">${word}</span>`;
     $('gauge').title = 'The family mood after last year — fear or greed. Just for fun.';
   }
 
   // ---------- The cast: dramatic voices, sometimes right, often wrong ----------
   const CAST = {
-    sharma: { e: '🧔', n: 'Sharma-ji', c: 'senior colleague, 15 years in the market' },
-    arvind: { e: '📺', n: 'Arvind', c: 'TV market expert, loud tie' },
-    kavya: { e: '💼', n: 'Kavya', c: 'batchmate, quit her job to “trade full-time”' },
-    uncle: { e: '📱', n: 'WhatsApp uncle', c: 'family group admin' },
-    sip: { e: '👩', n: 'SIP Aunty', c: 'at the family dinner' },
-    fd: { e: '👴', n: 'FD Uncle', c: 'at the family dinner' },
+    sharma: { e: 'S', n: 'Sharma-ji', c: 'senior colleague, 15 years in the market' },
+    arvind: { e: 'A', n: 'Arvind', c: 'TV market expert, loud tie' },
+    kavya: { e: 'K', n: 'Kavya', c: 'batchmate, quit her job to “trade full-time”' },
+    uncle: { e: 'W', n: 'WhatsApp uncle', c: 'family group admin' },
+    sip: { e: 'SA', n: 'SIP Aunty', c: 'at the family dinner' },
+    fd: { e: 'FD', n: 'FD Uncle', c: 'at the family dinner' },
   };
   const FEAR = [
     ['sharma', 'I’ve seen this before. Dot-com bust all over again. I sold everything at 9:15 this morning. If you’re still holding by Friday… don’t say I didn’t warn you.', 'lowering his voice'],
@@ -165,83 +161,138 @@
     const last = G.history[G.history.length - 1]; if (!last) return [];
     const out = [], tot = KEYS.reduce((a, k) => a + G.me.h[k], 0) || 1, r = last.r, spin = r + (G.seed % 7);
     const falling = ASSETS.filter(a => enabled(a.k, r) && last.ret[a.k] <= -0.15 && (G.me.h[a.k] > 1000 || a.k === 'nifty')).sort((a, b) => last.ret[a.k] - last.ret[b.k])[0];
-    if (falling) { const q = FEAR[spin % FEAR.length]; out.push(Object.assign(quote(q[0], q[1], q[2], { asset: A(falling.k).n, pct: Math.round(-last.ret[falling.k] * 100) + '%' }), { mood: 'fear' })); }
+    if (falling) { const q = FEAR[spin % FEAR.length]; out.push(Object.assign(quote(q[0], q[1], q[2], { asset: A(falling.k).n, pct: Math.round(-last.ret[falling.k] * 100) + '%' }), { mood: 'fear', k: falling.k })); }
     const hot = ASSETS.filter(a => enabled(a.k, r) && last.ret[a.k] >= 0.4 && G.me.h[a.k] / tot < 0.1).sort((a, b) => last.ret[b.k] - last.ret[a.k])[0];
-    if (hot) { const q = GREED[spin % GREED.length]; out.push(Object.assign(quote(q[0], q[1], q[2], { asset: A(hot.k).n, pct: Math.round(last.ret[hot.k] * 100) + '%' }), { mood: 'greed' })); }
+    if (hot) { const q = GREED[spin % GREED.length]; out.push(Object.assign(quote(q[0], q[1], q[2], { asset: A(hot.k).n, pct: Math.round(last.ret[hot.k] * 100) + '%' }), { mood: 'greed', k: hot.k })); }
     const nw = G.netWorth(), gap = nw.sip - nw.me, fgap = nw.fd - nw.me;
     if (gap > Math.max(20000, nw.me * 0.08)) out.push(Object.assign(quote('sip', `Beta, I’m ${inr(gap)} ahead. I didn’t even look at my portfolio this year. Pass the raita.`), { mood: 'taunt' }));
     else if (fgap > 20000) out.push(Object.assign(quote('fd', `Seven percent, guaranteed. I’m ${inr(fgap)} ahead of you and I sleep like a baby. Sleep is also a return, beta.`), { mood: 'taunt' }));
     else if (nw.me > nw.sip && nw.me > nw.fd && G.round > 2) out.push(Object.assign(quote('fd', 'So… very casually… what exactly have you been investing in?', 'suddenly very interested'), { mood: 'taunt' }));
-    return out.slice(0, 2);
+    return out.slice(0, 3);
   }
-  function quoteCards() {
-    return voices().map((q, i) => `<figure class="quote ${q.mood}" style="animation-delay:${0.15 + i * 0.25}s"><div class="qav">${q.e}</div><div><figcaption><b>${esc(q.n)}</b>, <span>${esc(q.c)}</span></figcaption><blockquote>“${esc(q.t)}”</blockquote></div></figure>`).join('');
+  // One quote, rendered as a pull-quote. Asset quotes sit inside that asset's ledger row; taunts sit by the net worth.
+  function quoteHTML(q, i) {
+    return `<figure class="quote ${q.mood}" style="animation-delay:${0.15 + (i || 0) * 0.25}s"><div class="qav">${q.e}</div><figcaption><b>${esc(q.n)}</b>, <span>${esc(q.c)}</span></figcaption><blockquote>“${esc(q.t)}”</blockquote></figure>`;
+  }
+
+  // ---------- Hot stock tips: one forwarded tip a year, drawn by the seed ----------
+  const TIPS = [
+    { co: 'Bharat Mega Infra', tk: 'BMIL', from: 47, to: 300, t: 'by Diwali. Board meeting Friday. Promoter buying. Don’t share outside family!!!' },
+    { co: 'Shree Ganesh Lithium', tk: 'SGLI', from: 18, to: 150, t: 'in 3 months. Govt EV order coming. My CA’s cousin confirmed. Buy before Monday!!' },
+    { co: 'Navratna Solar Pvt', tk: 'NAVSOL', from: 62, to: 500, t: 'target. Adani-level story. Operator is accumulating. Last chance!!!' },
+    { co: 'Kaveri Agro Exports', tk: 'KAVAGRO', from: 23, to: 180, t: 'by March. Big export deal with Dubai. Only for our group members.' },
+    { co: 'Om Sai Pharma', tk: 'OMSAI', from: 91, to: 700, t: 'by year end. Cure for diabetes in trials. 100% sure-shot, I have put my PF in.' },
+    { co: 'Rajdhani Steel Tubes', tk: 'RSTL', from: 34, to: 250, t: 'in 6 months. Railway contract news tomorrow. Delete after reading!!' },
+    { co: 'Lakshmi Gold Finance', tk: 'LGFL', from: 12, to: 120, t: '10 bagger. Big foreign fund entering. Don’t tell Sharma-ji.' },
+    { co: 'Vikas Telecom Infra', tk: 'VTIL', from: 8, to: 80, t: 'penny stock = big money. 5G tower deal. Buy minimum 10,000 shares!!!' },
+    { co: 'Sona Cement & Paints', tk: 'SONACEM', from: 55, to: 400, t: 'by Holi. Merger with big MNC. Inside news from Mumbai office.' },
+    { co: 'Ganga Hydro Power', tk: 'GANGAHP', from: 29, to: 220, t: 'target. Govt approval in hand. TV wala expert also bullish.' },
+    { co: 'Annapurna Foods Digital', tk: 'ANNAFD', from: 41, to: 333, t: 'by Navratri. App launch with cricket star. Upper circuit guaranteed.' },
+    { co: 'Swastik Rare Earths', tk: 'SWARE', from: 16, to: 160, t: 'in 100 days. China ban = our chance. Promoter is my neighbour’s friend.' },
+  ];
+  const TIP_UP = [
+    '{tk} hit upper circuit three days in a row. Uncle has sent 14 voice notes.',
+    '{tk} doubled. Uncle has changed the group name to “Crorepati Parivaar”.',
+    '{tk} up big. Uncle now signs every message “— market guru”.',
+    '{tk} rallied. The group is planning a Goa trip on Uncle’s profits.',
+  ];
+  const TIP_DOWN = [
+    '{tk} promoter arrested. Stock frozen. Uncle has left the group.',
+    '{tk} hit lower circuit five days straight. Uncle says “long-term hold only”.',
+    '{tk} auditor resigned. Uncle has stopped replying to messages.',
+    '{tk} delisted. Uncle is now forwarding yoga videos instead.',
+  ];
+  const tipFor = r => TIPS[((G.seed % 12) + r * 5) % 12];
+  const FWD = '<svg viewBox="0 0 16 12" width="14" height="11" aria-hidden="true"><path d="M9 1l5 4.5L9 10M14 5.5H6C3.5 5.5 2 7 2 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function tipSlip(r) {
+    const t = tipFor(r);
+    return `<div class="slip"><div class="fwd">${FWD} Forwarded many times</div><p><b>${esc(t.co)} (${t.tk})</b> <span class="tgt">₹${t.from} → ₹${t.to}</span> ${esc(t.t)}</p></div>`;
+  }
+  function tipOutcome(h) {
+    const t = tipFor(h.r), up = h.ret.hot >= 0, pool = up ? TIP_UP : TIP_DOWN;
+    return { up, t: pool[(h.r + G.seed) % pool.length].split('{tk}').join(t.tk) };
   }
 
   function renderPage() {
     const s = G.current(), ch = chapter(s, NAME), l = G.me.log;
     let h = `<div class="kicker">${ch.title}</div><h2>${esc(ch.sub)}</h2><p class="story">${esc(ch.text)}</p><div class="notes">`;
-    h += `<div class="note"><span class="em">📰</span><div><span class="tag news">In the news</span>${s.event ? '<span class="tag big">Big market year</span>' : ''}<b>${esc(s.news[0])}</b></div></div>`;
+    h += `<div class="note"><div><span class="tag news">In the news</span>${s.event ? '<span class="tag big">Big market year</span>' : ''}<b>${esc(s.news[0])}</b></div></div>`;
     if (s.life) {
-      h += `<div class="note"><span class="em">${s.life.e}</span><div><span class="tag life">Life happens</span><b>${esc(s.life.t)}</b></div>` +
+      h += `<div class="note"><div><span class="tag life">Life happens</span><b>${esc(s.life.t)}</b></div>` +
         (l.life ? `<span class="amt ${l.life < 0 ? 'negc' : 'pos'}">${l.life < 0 ? '−' : '+'}${inr(Math.abs(l.life))}</span>` : '') + `</div>`;
     }
-    h += `</div><div class="ledger">`;
+    h += `</div>`;
+    if (G.pending) {
+      h += `<div class="ledger"><div class="line total"><span>Ready for the gullak</span><span>—</span></div></div>`;
+    } else {
+    const ch0 = G.choices.find(c => c.r === G.round);
+    h += `<div class="ledger">`;
     h += `<div class="line"><span>Salary savings this year</span><b>${l.income ? inr(l.income) : '₹0 <small>(no job)</small>'}</b></div>`;
     if (l.life) h += `<div class="line"><span>${esc(s.life.t)}</span><b class="${l.life < 0 ? 'negc' : 'pos'}">${l.life < 0 ? '−' : '+'}${inr(Math.abs(l.life))}</b></div>`;
+    if (ch0 && l.choice) h += `<div class="line"><span>${esc(ch0.t)}</span><b class="${l.choice < 0 ? 'negc' : 'pos'}">${l.choice < 0 ? '−' : '+'}${inr(Math.abs(l.choice))}</b></div>`;
     if (l.debtPaid) h += `<div class="line"><span>Paid off credit-card debt first</span><b class="negc">−${inr(l.debtPaid)}</b></div>`;
-    if (l.sales.length || l.newDebt) {
+    if (!ch0 && (l.sales.length || l.newDebt)) {
       h += `<div class="forced"><b>${safeHead(l)}</b>`;
-      for (const x of l.sales) h += `<div class="line"><span>Sold ${A(x.k).i} ${A(x.k).n}</span><span>${inr(x.amt)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</span></div>`;
-      if (l.newDebt) h += `<div class="line negc"><span>💳 Put on the credit card (18%/yr)</span><b>${inr(l.newDebt)}</b></div>`;
+      for (const x of l.sales) h += `<div class="line"><span>Sold ${A(x.k).n}</span><span>${inr(x.amt)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</span></div>`;
+      if (l.newDebt) h += `<div class="line negc"><span>Put on the credit card (${DRT} a year)</span><b>${inr(l.newDebt)}</b></div>`;
       const safeOnly = !l.newDebt && l.sales.every(x => x.k === 'sav' || x.k === 'fd');
       h += safeOnly ? `<p>Good thing there was a cushion — Savings and FD took the hit, so ${esc(NAME)} didn’t have to sell investments in a hurry.</p></div>`
         : `<p>Without enough cushion in Savings or FD, ${esc(NAME)} had to sell investments — whatever the market was doing.</p></div>`;
     }
-    for (const x of l.sells) h += `<div class="line"><span>You sold ${A(x.k).i} ${A(x.k).n}</span><b class="pos">+${inr(x.proceeds)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</b></div>`;
+    for (const x of l.sells) h += `<div class="line"><span>You sold ${A(x.k).n}</span><b class="pos">+${inr(x.proceeds)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</b></div>`;
     h += `<div class="line total"><span>Ready for the gullak</span><span>${inr(G.me.cash)}</span></div></div>`;
-    const last = G.history[G.history.length - 1];
-    if (last) h += `<div class="lastyr">Last year: ` + ASSETS.filter(a => enabled(a.k, last.r)).map(a => retChip(a.k, last.ret[a.k])).join('') + `</div>`;
+    }
     const rec = records();
-    if (rec.best && G.history.length > 1) h += `<div class="records"><span>🏆 Best year <b class="pos">${signed(rec.best.g)}</b> <small>(Year ${rec.best.h.r + 1})</small></span><span>🌧️ Worst year <b class="${rec.worst.g < 0 ? 'negc' : 'pos'}">${signed(rec.worst.g)}</b> <small>(Year ${rec.worst.h.r + 1})</small></span></div>`;
+    if (rec.best && G.history.length > 1) h += `<div class="records"><span>Best year <b class="pos">${signed(rec.best.g)}</b> <small>(Year ${rec.best.h.r + 1})</small></span><span>Worst year <b class="${rec.worst.g < 0 ? 'negc' : 'pos'}">${signed(rec.worst.g)}</b> <small>(Year ${rec.worst.h.r + 1})</small></span></div>`;
     const nwm = G.netWorth().me;
     h += `<div class="shelf"><div id="shelfPot"></div><p>${esc(NAME)}’s gullak holds <b>${inr(nwm)}</b>${G.me.debt > 0.5 ? ` — and a credit-card bill of <b class="negc">${inr(G.me.debt)}</b>` : ''}. ${G.round === 0 ? 'Empty for now. Let’s fill it.' : nwm > G.netWorth().sip ? 'Heavier than SIP Aunty’s!' : 'It grows a little every year.'}</p></div>`;
     $('page').innerHTML = h;
     mountPot($('shelfPot'), nwm);
     $('page').style.animation = 'none'; void $('page').offsetWidth; $('page').style.animation = '';
   }
-  function safeHead(l) { return !l.newDebt && l.sales.every(x => x.k === 'sav' || x.k === 'fd') ? '🧯 Dipped into the emergency cushion' : '🚨 Forced sale — the money had to come from somewhere'; }
-  function retChip(k, r) { return `<span class="chip ${r > 0.001 ? 'up' : r < -0.001 ? 'dn' : 'flat'}">${A(k).i} ${pct(r)}</span>`; }
+  function safeHead(l) { return !l.newDebt && l.sales.every(x => x.k === 'sav' || x.k === 'fd') ? 'Dipped into the emergency cushion' : 'Forced sale — the money had to come from somewhere'; }
+  function retChip(k, r) { return `<span class="chip ${r > 0.001 ? 'up' : r < -0.001 ? 'dn' : 'flat'}"><span class="cd">${CODE[k]}</span>${pct(r)}</span>`; }
 
   function renderJars() {
     const s = G.current(), r = G.round, cash = G.me.cash, ffN = G.ffYears();
-    const ffBtn = `<button class="btn ghost" id="ffBtn" ${ffN ? '' : 'disabled'}>${ffN ? `⏩ ${ffN} year${ffN > 1 ? 's' : ''}` : '⏩ Last page'}</button>`;
+    const ffBtn = `<button class="btn ghost" id="ffBtn" ${ffN ? '' : 'disabled'}>${ffN ? `Skip ${ffN} year${ffN > 1 ? 's' : ''} »` : 'Last page'}</button>`;
     const ffNote = ffN ? `Fast-forward keeps this mix and never sells${ffN < 5 && r + ffN < R - 1 ? ` · stops before Year ${r + ffN + 1}` : ''}.` : 'No skipping the final year.';
+    if (G.pending) { renderDecision(); return; }
+    const verdict = choiceVerdict();
     if (cash < 1) {
       $('jars').className = 'jars';
-      $('jars').innerHTML = quoteCards() + `<div class="waits"><div id="waitPot"></div><h3>${G.me.log.income ? 'Nothing left to save this year' : 'No salary this year — the gullak waits.'}</h3>
+      $('jars').innerHTML = verdict + `<div class="waits"><div id="waitPot"></div><h3>${G.me.log.income ? 'Nothing left to save this year' : 'No salary this year — the gullak waits.'}</h3>
         <p>${G.me.log.income ? 'Life took it all. The gullak sits quietly on the shelf.' : `${esc(NAME)} keeps the lights on and the pot keeps its coins. Better years are coming.`}</p></div>
         <div class="actions"><button class="btn primary" id="goBtn">Turn the page →</button>${ffBtn}</div><div class="ffnote">${ffNote}</div>`;
       mountPot($('waitPot'), G.netWorth().me);
     } else {
       const first = r === 0;
       $('jars').className = 'jars' + (first ? ' coach' : '');
-      $('jars').innerHTML = quoteCards() + (first ? `<div class="coachtip">👉 Slide to split this year’s ${inr(cash)} between the jars. Then drop it in the gullak!</div>` : '') +
+      const vs = voices(), lastH = G.history[G.history.length - 1];
+      $('jars').innerHTML = verdict + (first ? `<div class="coachtip">Slide to split this year’s ${inr(cash)} between the jars. Then drop it in the gullak.</div>` : '') +
         `<h3>Where does ${inr(cash)} go?</h3><p class="sub">This year’s savings${G.me.log.sells.length ? ' plus what you sold' : ''}. Nervous — or greedy? You can sell from a jar to move money around.</p>` +
         `<div class="mixbar" id="mixbar"></div><div class="sumhint" id="sumhint"></div>` +
         ASSETS.map(a => {
           const on = enabled(a.k, r), hold = G.me.h[a.k], last = G.history[G.history.length - 1];
-          const lock = !on ? `<span class="lock">unlocks Year 10</span>` : a.k === 'ppf' ? `<span class="lock">${r >= PPF_R ? '🔓 unlocked' : '🔒 locked till Year 16'}</span>` : '';
+          const lock = !on ? `<span class="lock">unlocks Year 10</span>` : a.k === 'ppf' ? `<span class="lock">${r >= PPF_R ? 'unlocked' : 'locked till Year 16'}</span>` : '';
           const overall = hold - G.me.contrib[a.k];
-          const perf = hold > 0.5 && last && enabled(a.k, last.r) ? `<div class="perf">${retChip(a.k, last.ret[a.k])} <b class="${last.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(last.pnl[a.k])}</b> last year · <b class="${overall < 0 ? 'negc' : 'pos'}">${signed(overall)}</b> overall</div>` : '';
-          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>1% penalty</small>' : ''}</div>` : `<div class="sells"><small>🔒 can’t sell yet</small></div>`) : '';
-          return `<div class="asset ${on ? '' : 'off'}" style="--c:${a.c}"><div class="ico">${a.i}</div>
+          const held = hold > 0.5 || Math.abs(G.me.contrib[a.k]) > 0.5;
+          const perf = last && enabled(a.k, last.r) ? `<div class="perf ${held && last.pnl[a.k] < -0.5 ? 'hit' : held && last.pnl[a.k] > 0.5 && last.ret[a.k] >= 0.25 ? 'win' : ''}">${retChip(a.k, last.ret[a.k])}` +
+            (held ? `<span>last yr <b class="${last.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(last.pnl[a.k])}</b></span><span>overall <b class="${overall < 0 ? 'negc' : 'pos'}">${signed(overall)}</b></span>` : `<span>last year</span>`) + `</div>` : '';
+          let notes = '';
+          if (a.k === 'hot' && on) {
+            if (lastH && enabled('hot', lastH.r)) { const o = tipOutcome(lastH); notes += `<div class="outcome ${o.up ? 'pos' : 'negc'}">${esc(o.t)}</div>`; }
+            notes += tipSlip(r);
+          }
+          notes += vs.filter(q => q.k === a.k).map(quoteHTML).join('');
+          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>1% penalty</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
+          return `<div class="asset ${on ? '' : 'off'}"><div class="ico" aria-hidden="true">${CODE[a.k]}</div>
             <div><div class="nm" title="${esc(a.f)}">${a.n} ${lock}</div><div class="why">${esc(a.f)}</div></div>
             <div><div class="amt" id="amt-${a.k}">—</div><div class="hold">has ${inr(hold)}</div></div>
-            ${perf}${sell}
+            ${perf}${notes ? `<div class="rownotes">${notes}</div>` : ''}${sell}
             <input type="range" min="0" max="100" step="5" value="${on ? G.alloc[a.k] || 0 : 0}" style="--p:${on ? G.alloc[a.k] || 0 : 0}%" data-k="${a.k}" ${on ? '' : 'disabled'} aria-label="${a.n} share"></div>`;
         }).join('') +
-        `<div class="actions"><button class="btn primary" id="goBtn">Drop it in the gullak 🪙</button>${ffBtn}</div><div class="ffnote">${ffNote}</div>`;
+        `<div class="actions"><button class="btn primary" id="goBtn">Drop it in the gullak</button>${ffBtn}</div><div class="ffnote">${ffNote}</div>`;
       $('jars').querySelectorAll('input[type=range]').forEach(inp => inp.oninput = () => {
         G.alloc[inp.dataset.k] = +inp.value; inp.style.setProperty('--p', inp.value + '%'); $('jars').classList.remove('coach'); updateAmts();
       });
@@ -255,11 +306,77 @@
     $('goBtn').onclick = () => invest();
     $('ffBtn').onclick = () => fastForward();
   }
+  // ---------- Family decisions: block the year until the player chooses ----------
+  const fillN = t => String(t).split('{n}').join(NAME);
+  const costTxt = c => c > 0.5 ? '−' + inr(c) : c < -0.5 ? '+' + inr(-c) : '₹0';
+  function renderDecision() {
+    const d = G.pending, s = G.current();
+    $('jars').className = 'jars decide';
+    $('jars').innerHTML = `<div class="kicker">A family decision · Year ${s.r + 1}</div><h3>${esc(d.t)}</h3><p class="dstory">${esc(fillN(d.s))}</p>
+      <div class="opts">${d.options.map((o, i) => {
+        const pv = G.previewChoice(i);
+        return `<button class="opt" data-choose="${i}"><span class="ol">${esc(o.label)}</span><span class="oc ${pv.cost > 0.5 ? 'negc' : ''}">${costTxt(pv.cost)}</span>` +
+          (pv.shortfall > 0.5 ? `<span class="warn">You’ll have to sell ${inr(pv.shortfall)} of investments for this</span>` : '') + `</button>`;
+      }).join('')}</div>
+      <p class="sub">FD Uncle and SIP Aunty face the same choice. Nothing else happens this year until you decide.</p>`;
+    $('jars').querySelectorAll('[data-choose]').forEach(b => b.onclick = () => {
+      if (!G.pending) return;
+      const i = +b.dataset.choose, pv = G.previewChoice(i);
+      if (pv.shortfall > 0.5) renderFunding(i, pv); else commitChoice(i, 'sell');
+    });
+  }
+  function commitChoice(i, fund) {
+    G.choose(i, fund);
+    const l = G.me.log;
+    if (l.sales.length || l.newDebt) sad(); else clink();
+    render();
+    window.scrollTo(0, 0);
+  }
+  // Which jars a forced sale would empty (same order as game.js; preview only)
+  function salePlan(need) {
+    const order = G.round >= PPF_R ? ['sav', 'fd', 'ppf', 'gold', 'nifty', 'hot', 'crypto'] : ['sav', 'fd', 'gold', 'nifty', 'hot', 'crypto'], out = [];
+    for (const k of order) {
+      if (need <= 0) break;
+      const avail = G.me.h[k]; if (avail <= 0.5) continue;
+      const mult = k === 'fd' ? 0.99 : 1, sell = Math.min(avail, need / mult);
+      out.push({ k, sell }); need -= sell * mult;
+    }
+    return { out, left: Math.max(0, need) };
+  }
+  function renderFunding(i, pv) {
+    const d = G.pending, o = d.options[i], plan = salePlan(pv.shortfall);
+    $('jars').className = 'jars decide';
+    $('jars').innerHTML = `<div class="kicker">${esc(d.t)} · ${esc(o.label)}</div>
+      <h3>You’re short by <span class="negc mono">${inr(pv.shortfall)}</span>. How will you pay?</h3>
+      <div class="opts fund">
+        <button class="opt" data-fund="sell"><span class="ol">Sell investments</span><span class="oc negc">−${inr(pv.shortfall)}</span>
+          <span class="plan">${plan.out.map(x => `${A(x.k).n} <b>${inr(x.sell)}</b>`).join(' · ') || 'Nothing to sell'}${plan.left > 0.5 ? ` · the rest (${inr(plan.left)}) goes on the card` : ''}</span>
+          <span class="fnote">Sharma-ji: “Never sell in a panic.” Easy for him to say.</span></button>
+        <button class="opt card" data-fund="card"><span class="ol">Swipe the credit card (${DRT} a year)</span><span class="oc negc">−${inr(pv.shortfall)}</span>
+          <span class="plan">Nothing is sold. Next year the bank adds about <b>${inr(pv.shortfall * DR)}</b> in interest — and keeps adding it until it is paid.</span>
+          <span class="fnote">The bank sends a congratulatory SMS.</span></button>
+      </div>
+      <button class="linkbtn back" id="fundBack">← choose a different option</button>`;
+    $('jars').querySelectorAll('[data-fund]').forEach(b => b.onclick = () => commitChoice(i, b.dataset.fund));
+    $('fundBack').onclick = () => renderDecision();
+  }
+  function choiceVerdict() {
+    const c = G.choices.find(x => x.r === G.round); if (!c) return '';
+    const l = G.me.log, forced = l.sales.length || l.newDebt;
+    let h = `<div class="verdictbox"><div class="kicker">${esc(c.t)} · ${esc(c.label)}</div><p class="consequence">${esc(fillN(c.note))}</p>`;
+    if (forced) {
+      h += `<div class="stamp"><span class="stampmark">${l.onCard && !l.sales.length ? 'On the card' : 'Forced sale'}</span><div>`;
+      for (const x of l.sales) h += `<div class="line"><span>Sold ${A(x.k).n}</span><span class="negc">${inr(x.amt)}${x.pen ? ` <small>(−${inr(x.pen)} penalty)</small>` : ''}</span></div>`;
+      if (l.newDebt) h += `<div class="line"><span>Put on the credit card (${DRT} a year)</span><span class="negc">${inr(l.newDebt)}</span></div>`;
+      h += `</div></div>`;
+    }
+    return h + `</div>`;
+  }
   function updateAmts() {
     const r = G.round, sh = window.Gullak.normAlloc(G.alloc, r);
     let tot = 0; for (const k of KEYS) if (enabled(k, r)) tot += +G.alloc[k] || 0;
     for (const k of KEYS) { const el = $('amt-' + k); if (el) el.textContent = enabled(k, r) ? `${Math.round(sh[k] * 100)}% · ${inr(G.me.cash * sh[k])}` : '—'; }
-    $('mixbar').innerHTML = ASSETS.filter(a => sh[a.k] > 0).map(a => `<div style="flex-grow:${sh[a.k]};background:${a.c}"></div>`).join('');
+    $('mixbar').innerHTML = ASSETS.filter(a => sh[a.k] > 0).map(a => `<div style="flex-grow:${sh[a.k]};background:${COL[a.k]}"></div>`).join('');
     $('sumhint').textContent = tot === 0 ? 'All sliders at zero → it all goes to Savings' : 'Sliders are relative — they always add up to 100%';
   }
 
@@ -287,18 +404,19 @@
     const held = ASSETS.filter(a => enabled(a.k, rec.r) && (Math.abs(rec.pnl[a.k]) > 0.5 || rec.shares[a.k] > 0));
     const rows = held.map((a, i) => {
       const overall = G.me.h[a.k] - G.me.contrib[a.k];
-      return `<div class="rrow" style="animation-delay:${0.45 + i * 0.12}s"><span>${a.i} ${a.n}</span>${retChip(a.k, rec.ret[a.k])}<b class="${rec.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(rec.pnl[a.k])}</b><small>${signed(overall)} overall</small></div>`;
+      const o = a.k === 'hot' ? tipOutcome(rec) : null;
+      return `<div class="rrow" style="animation-delay:${0.45 + i * 0.12}s"><span>${a.n}</span>${retChip(a.k, rec.ret[a.k])}<b class="${rec.pnl[a.k] < 0 ? 'negc' : 'pos'}">${signed(rec.pnl[a.k])}</b><small>${signed(overall)} overall</small>${o ? `<div class="outcome ${o.up ? 'pos' : 'negc'}">${esc(o.t)}</div>` : ''}</div>`;
     }).join('');
     $('sheet').className = 'sheet ' + (gain < 0 ? 'loss' : 'win');
     $('sheet').innerHTML = `<div class="kicker">The end of Year ${rec.r + 1}</div>
-      <div class="headline ${gain < 0 ? 'negc' : 'pos'}">${signed(gain)} this year ${gain < 0 ? '😱' : '🎉'}</div>
-      <div class="subhead">${gain < 0 ? 'The markets took a bite out of the gullak.' : 'The markets were kind to the gullak.'}${isBest ? ' <span class="tag big" style="background:#dcebd9;color:#2f6b4f">New best year!</span>' : ''}${isWorst ? ' <span class="tag big">New worst year</span>' : ''}</div>
+      <div class="headline ${gain < 0 ? 'negc' : 'pos'}">${signed(gain)}<small>${gain < 0 ? 'lost to the markets this year' : 'made in the markets this year'}</small></div>
+      <div class="subhead">${gain < 0 ? 'The markets took a bite out of the gullak.' : 'The markets were kind to the gullak.'}${isBest ? ' <span class="tag life">New best year</span>' : ''}${isWorst ? ' <span class="tag big">New worst year</span>' : ''}</div>
       <div class="reveal-top"><div id="revPot"></div><div><small>In the gullak now</small><div class="bignum" id="revNum">${inr(rec.nwBefore)}</div>
       <div class="delta">${signed(up)} since last year, after adding ${inr(rec.invested)}</div></div></div>
       <div class="rtable">${rows || '<p class="sub">Nothing invested yet.</p>'}</div>
-      ${rec.interest > 1 ? `<div class="forced" style="margin-top:0"><b>💳 Credit-card interest: −${inr(rec.interest)}</b></div>` : ''}
-      <div class="rivalline">👴 FD Uncle ${inr(rec.fdAfter)} · 👩 SIP Aunty ${inr(rec.sipAfter)}</div>
-      <button class="btn primary" id="contBtn">${G.done ? 'Break the gullak 🔨' : `Turn to chapter ${rec.r + 2} →`}</button>`;
+      ${rec.interest > 1 ? `<div class="forced" style="margin-top:0"><b>Interest charged: −${inr(rec.interest)}</b> <small>(credit card at ${DRT} a year)</small></div>` : ''}
+      <div class="rivalline">FD Uncle <b>${inr(rec.fdAfter)}</b> · SIP Aunty <b>${inr(rec.sipAfter)}</b></div>
+      <button class="btn primary" id="contBtn">${G.done ? 'Break the gullak' : `Turn to chapter ${rec.r + 2} →`}</button>`;
     $('modal').hidden = false;
     mountPot($('revPot'), rec.nwBefore);
     if (gain < 0) { sad(); document.body.classList.remove('ouch'); void document.body.offsetWidth; document.body.classList.add('ouch'); setTimeout(() => $('revPot').classList.add('cracked'), 300); }
@@ -322,15 +440,15 @@
     const a = recs[0], b = recs[recs.length - 1], up = b.nwAfter - a.nwBefore, nxt = G.current();
     $('sheet').innerHTML = `<div class="kicker">Fast-forward · Year ${a.r + 1}${recs.length > 1 ? '–' + (b.r + 1) : ''}</div>
       <h2>${recs.length > 1 ? `${recs.length} years fly by.` : 'A year flies by.'} ${esc(NAME)} is now ${nxt.age}.</h2>
-      ${nxt.event ? `<div class="stopnote">⏸️ Stopping here — something big is about to happen. Better be at the wheel for this one.</div>` : ''}
+      ${nxt.event ? `<div class="stopnote">Stopping here — something big is about to happen. Better be at the wheel for this one.</div>` : ''}
       <ul class="recap">${recs.map(r => {
         const d = marketGain(r), f = r.log.sales.length || r.log.newDebt;
         return `<li><span class="yr">Y${r.r + 1}</span><span>${esc(r.news[0])}</span><span class="d ${d < 0 ? 'negc' : 'pos'}">${d < 0 ? '−' : '+'}${inr(Math.abs(d))}</span>
-          <span class="ev">${r.life ? `${r.life.e} ${esc(r.life.t)}` : 'A quiet year at home.'}${f ? ' · <b class="negc">🚨 forced sale</b>' : ''}</span></li>`;
+          <span class="ev">${r.choice ? `${esc(r.choice.t)}: ${esc(r.choice.label)} (${costTxt(r.choice.cost)})` : r.life ? esc(r.life.t) : 'A quiet year at home.'}${f ? ' · <b class="negc">forced sale</b>' : ''}</span></li>`;
       }).join('')}</ul>
       <div class="reveal-top"><div id="revPot"></div><div><small>In the gullak</small><div class="bignum" id="revNum">${inr(a.nwBefore)}</div>
       <div class="delta ${up < 0 ? 'negc' : 'pos'}">${signed(up)} over ${recs.length} year${recs.length > 1 ? 's' : ''} (with savings)</div></div></div>
-      <div class="rivalline">👴 FD Uncle ${inr(b.fdAfter)} · 👩 SIP Aunty ${inr(b.sipAfter)}</div>
+      <div class="rivalline">FD Uncle <b>${inr(b.fdAfter)}</b> · SIP Aunty <b>${inr(b.sipAfter)}</b></div>
       <button class="btn primary" id="contBtn">Read chapter ${nxt.r + 1} →</button>`;
     $('modal').hidden = false;
     mountPot($('revPot'), a.nwBefore);
@@ -355,19 +473,20 @@
     stage.classList.remove('go'); void stage.offsetWidth; stage.classList.add('go');
     setTimeout(() => tone([523, 659, 784, 1047], 0.09, 'triangle'), 1150);
 
-    const res = [{ n: NAME, e: '😊', v: nw.me, me: 1 }, { n: 'FD Uncle', e: '👴', v: nw.fd }, { n: 'SIP Aunty', e: '👩', v: nw.sip }].sort((a, b) => b.v - a.v);
+    const res = [{ n: NAME, v: nw.me, me: 1 }, { n: 'FD Uncle', v: nw.fd }, { n: 'SIP Aunty', v: nw.sip }].sort((a, b) => b.v - a.v);
     const rank = res.findIndex(x => x.me) + 1;
     $('endTitle').textContent = `${NAME} is 45. Time to break the gullak.`;
-    $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024 🇮🇳</b> — real Indian market history. The Rollercoaster was <b>Bitcoin</b>.` +
-      `<ul>${G.sched.filter(s => s.event || s.y === 2014).map(s => `<li><span>Year ${s.r + 1} = ${s.y}</span> ${esc(s.news[2])}</li>`).join('')}</ul>`;
+    $('yearsReveal').innerHTML = `<b>Surprise: you just lived through 2005–2024</b> — real Indian market history. The Rollercoaster was <b>Bitcoin</b>.` +
+      `<ul>${G.sched.filter(s => s.event || s.y === 2014).map(s => `<li><span>Year ${s.r + 1} = ${s.y}</span> ${esc(s.news[2])}</li>`).join('')}</ul>` +
+      (G.choices.length ? `<b>Your family decisions</b><ul>${G.choices.map(c => `<li><span>Year ${c.r + 1}</span> ${esc(c.t)}: ${esc(c.label)} <b class="negc">${costTxt(c.cost)}</b></li>`).join('')}</ul>` : '');
     $('verdict').textContent = rank === 1 ? `Out spills ${inr(nw.me)} — more than FD Uncle and SIP Aunty. The family WhatsApp group is speechless.`
       : rank === 2 ? `Out spills ${inr(nw.me)}. One relative beaten, one to go — Diwali dinner will be lively.`
       : `Out spills ${inr(nw.me)}. Even FD Uncle did better… he will mention this at every family dinner.`;
-    $('podium').innerHTML = res.map((x, i) => `<div class="pod ${x.me ? 'me' : ''}"><div class="rk">${['1st', '2nd', '3rd'][i]}</div><div class="who">${x.e} ${esc(x.n)}</div><b class="${x.v < 0 ? 'negc' : ''}">${inr(x.v)}</b></div>`).join('');
-    $('takeaways').innerHTML = G.takeaways().map((t, i) => `<div class="tk" style="animation-delay:${1.8 + i * 0.2}s"><div class="em">${t.icon}</div><h4>${esc(t.title)}</h4><p>${esc(t.text)}</p></div>`).join('');
+    $('podium').innerHTML = res.map((x, i) => `<div class="pod ${x.me ? 'me' + (i === 0 ? ' win' : '') : ''}"><div class="rk">${['1st', '2nd', '3rd'][i]}</div><div class="who">${esc(x.n)}</div><b class="${x.v < 0 ? 'negc' : ''}">${inr(x.v)}</b></div>`).join('');
+    $('takeaways').innerHTML = G.takeaways().map((t, i) => `<div class="tk" style="animation-delay:${1.8 + i * 0.2}s"><div class="em">${['i.', 'ii.', 'iii.'][i] || ''}</div><h4>${esc(t.title)}</h4><p>${esc(t.text)}</p></div>`).join('');
     const tot = KEYS.reduce((a, k) => a + G.me.h[k], 0) || 1;
-    $('finalAlloc').innerHTML = ASSETS.filter(a => G.me.h[a.k] > 0.5).map(a => `<div class="line"><span>${a.i} ${a.n}</span><span><b>${inr(G.me.h[a.k])}</b> · ${(G.me.h[a.k] / tot * 100).toFixed(0)}%</span></div>`).join('') +
-      (G.me.debt > 0.5 ? `<div class="line negc"><span>💳 Credit-card debt</span><b>−${inr(G.me.debt)}</b></div>` : '') || '<p>Nothing — the gullak was empty.</p>';
+    $('finalAlloc').innerHTML = ASSETS.filter(a => G.me.h[a.k] > 0.5).map(a => `<div class="line"><span>${a.n}</span><span><b>${inr(G.me.h[a.k])}</b> · ${(G.me.h[a.k] / tot * 100).toFixed(0)}%</span></div>`).join('') +
+      (G.me.debt > 0.5 ? `<div class="line negc"><span>Credit-card debt</span><b>−${inr(G.me.debt)}</b></div>` : '') || '<p>Nothing — the gullak was empty.</p>';
     const link = location.origin + location.pathname + '?seed=' + SEED;
     $('seedNum').textContent = SEED; $('seedLink').href = link;
     drawChart();
@@ -376,17 +495,17 @@
     if (!window.Chart) return;
     try {
       if (chart) chart.destroy();
-      const ds = (label, data, c, w) => ({ label, data: [0].concat(data), borderColor: c, backgroundColor: c, borderWidth: w, pointRadius: 0, pointHoverRadius: 5, tension: .3 });
+      const ds = (label, data, c, w) => ({ label, data: [0].concat(data), borderColor: c, backgroundColor: c, borderWidth: w, pointRadius: 0, pointHoverRadius: 5, tension: .25, fill: false });
       chart = new Chart($('chart'), {
         type: 'line',
-        data: { labels: ['Start'].concat(G.sched.map(s => String(s.y))), datasets: [ds(NAME, G.me.nwHist, RIVAL_COLORS.me, 4), ds('FD Uncle', G.fd.nwHist, RIVAL_COLORS.fd, 2.5), ds('SIP Aunty', G.sip.nwHist, RIVAL_COLORS.sip, 2.5)] },
+        data: { labels: ['Start'].concat(G.sched.map(s => String(s.y))), datasets: [ds(NAME, G.me.nwHist, RIVAL_COLORS.me, 3.5), Object.assign(ds('FD Uncle', G.fd.nwHist, RIVAL_COLORS.fd, 1.5), { borderDash: [5, 4] }), ds('SIP Aunty', G.sip.nwHist, RIVAL_COLORS.sip, 2)] },
         options: {
           responsive: true, maintainAspectRatio: false, animation: { duration: 1200 }, interaction: { mode: 'index', intersect: false },
-          plugins: { legend: { labels: { color: '#3a281d', font: { family: 'Nunito', weight: '700' }, usePointStyle: true, pointStyle: 'circle' } },
-            tooltip: { backgroundColor: '#3a281d', titleFont: { family: 'Fraunces' }, bodyFont: { family: 'Nunito' }, callbacks: { label: c => ' ' + c.dataset.label + ': ' + inr(c.parsed.y) } } },
+          plugins: { legend: { labels: { color: '#2B2A26', font: { family: 'Newsreader', size: 14 }, usePointStyle: true, pointStyle: 'line' } },
+            tooltip: { backgroundColor: '#2B2A26', cornerRadius: 3, titleFont: { family: 'IBM Plex Mono' }, bodyFont: { family: 'IBM Plex Mono' }, callbacks: { label: c => ' ' + c.dataset.label + ': ' + inr(c.parsed.y) } } },
           scales: {
-            x: { ticks: { color: '#8a705b', maxRotation: 0, autoSkipPadding: 12, font: { family: 'Nunito' } }, grid: { display: false } },
-            y: { ticks: { color: '#8a705b', callback: v => inr(v), font: { family: 'Nunito' } }, grid: { color: '#eadcc4' }, border: { display: false } },
+            x: { ticks: { color: '#787268', maxRotation: 0, autoSkipPadding: 12, font: { family: 'IBM Plex Mono', size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#787268', callback: v => inr(v), font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#E2D7BF' }, border: { display: false } },
           },
         },
       });

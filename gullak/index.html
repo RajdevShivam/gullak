@@ -7,7 +7,7 @@
 <meta name="description" content="A storybook investing game: twenty years of one life, one clay piggy bank.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,800;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -17,6 +17,7 @@
 <!-- Title page -->
 <section id="title" class="screen title">
   <div class="title-card">
+    <p class="shubh" lang="hi">॥ शुभ लाभ ॥</p>
     <div class="hero" id="heroPot"></div>
     <h1>Gullak</h1>
     <p class="tagline">A little story about one life, one clay pot, and twenty years of choices.</p>
@@ -48,6 +49,7 @@
     </div>
   </header>
   <div class="inside" id="inside"></div>
+  <div class="taunts" id="taunt"></div>
   <main class="spread">
     <article class="page" id="page"></article>
     <aside class="jars" id="jars"></aside>
@@ -73,7 +75,7 @@
     <div class="card"><h3 class="sec small">What spilled out</h3><div id="finalAlloc"></div></div>
   </div>
   <div class="endbtns">
-    <button class="btn primary big" id="again">Play again — a new life 🔁</button>
+    <button class="btn primary big" id="again">Play again — a new life</button>
   </div>
   <p class="seedline">Same twenty years for a friend: <a id="seedLink" href="#">seed <span id="seedNum"></span></a> <button class="linkbtn" id="copySeed">copy link</button></p>
 </section>

@@ -26,7 +26,7 @@ test('20 rounds end the game', () => {
 function forcedGame(r, x) {
   // Build a game and inject a big expense into round r
   const g = G.createGame(1);
-  for (const s of g.sched) s.life = null;
+  for (const s of g.sched) { s.life = null; s.choice = null; }
   g.sched[r].life = { id: 'test', t: 't', e: '', x, s: '' };
   return g;
 }
@@ -51,20 +51,22 @@ test('PPF can be sold after it unlocks (2020)', () => {
   assert.ok(g.me.log.sales.some(s => s.k === 'ppf'));
 });
 
-test('debt accrues 18% and is repaid first from next income', () => {
+test('debt accrues 36% and is repaid first from next income', () => {
   const g = forcedGame(1, -3);
   g.step({ nifty: 0, sav: 1 });           // round 0: savings ~1.2L
   const debt0 = g.me.debt;                // round 1 starts with a forced sale + debt
   assert.ok(debt0 > 0);
   g.step({ sav: 1 });                     // interest accrues
-  assert.ok(Math.abs(g.history[1].interest - debt0 * 0.18) < 1e-6);
+  assert.ok(Math.abs(g.history[1].interest - debt0 * 0.36) < 1e-6);
   const log = g.me.log;                   // round 2: repay first
   assert.ok(log.debtPaid > 0);
-  assert.ok(Math.abs(log.debtPaid - Math.min(log.income, debt0 * 1.18)) < 1e-6);
+  assert.ok(Math.abs(log.debtPaid - Math.min(log.income, debt0 * 1.36)) < 1e-6);
 });
 
+const noChoices = g => { for (const s of g.sched) s.choice = null; return g; };
+
 test('fast-forward skips up to 5 years, stops before big events, never skips the last year', () => {
-  const g = G.createGame(5);
+  const g = noChoices(G.createGame(5));
   assert.strictEqual(g.ff(MIX).length, 3);      // 2005-2007, stops before 2008 crash
   assert.strictEqual(g.current().y, 2008);
   assert.strictEqual(g.ff(MIX).length, 1);      // plays 2008, stops before 2009 rebound
@@ -81,11 +83,11 @@ test('fast-forward skips up to 5 years, stops before big events, never skips the
 });
 
 test('fast-forward advances a full 5 years when no event is in the way', () => {
-  const g = G.createGame(5);
+  const g = noChoices(G.createGame(5));
   while (g.current().y < 2009) g.step(MIX);    // at 2009
   g.step(MIX);                                  // at 2010
   assert.strictEqual(g.ff(MIX).length, 3);      // 2010-2012 then 2013 event
-  const h = G.createGame(5);
+  const h = noChoices(G.createGame(5));
   for (const s of h.sched) s.event = false;     // no events -> capped at 5
   assert.strictEqual(h.ff(MIX).length, 5);
   assert.strictEqual(h.round, 5);
@@ -170,4 +172,63 @@ test('story copy never reveals years or says crypto/Bitcoin', () => {
     assert.ok(!/\b(19|20)\d\d\b/.test(t), 'year leaked: ' + t);
     assert.ok(!/crypto|bitcoin/i.test(t), 'crypto word leaked: ' + t);
   }
+});
+
+test('life decisions: every game has all four, at their seeded rounds, one per year', () => {
+  for (const seed of [1, 2, 3, 42, 777]) {
+    const g = G.createGame(seed);
+    const at = g.sched.filter(s => s.choice).map(s => [s.choice.id, s.r]);
+    assert.deepStrictEqual(at.map(a => a[0]), ['wedding', 'car', 'sister', 'surgery']);
+    for (const [id, r] of at) assert.ok(G.DILEMMAS.find(d => d.id === id).at.includes(r));
+    for (const s of g.sched) if (s.choice && s.life) assert.ok(s.life.promo, 'only a promotion can share a decision year');
+  }
+});
+
+test('life decisions: must choose before investing; cost hits cash and can force a sale', () => {
+  const g = G.createGame(42);
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ nifty: 1 });
+  assert.ok(g.pending, 'decision pending at the start of the year');
+  assert.strictEqual(g.canSell('nifty'), false, 'no selling until decided');
+  const p = g.previewChoice(0);
+  assert.ok(p.cost > 0 && p.shortfall > 0, 'big option previews a forced sale');
+  const log = g.choose(0);
+  assert.strictEqual(g.pending, null);
+  assert.ok(Math.abs(log.choice + p.cost) < 1e-6);
+  assert.ok(log.sales.length > 0 || log.newDebt > 0, 'shortfall is force-sold');
+  assert.strictEqual(g.choices[0].i, 0);
+});
+
+test('life decisions: step auto-picks the default; rivals always take the default', () => {
+  const g = G.createGame(7);
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ sav: 1 });
+  const d = g.pending;
+  const rivalCost = -g.fd.log.choice;
+  assert.ok(Math.abs(rivalCost - (-d.options[d.def].x * g.current().inc)) < 1e-6);
+  g.step({ sav: 1 });
+  assert.strictEqual(g.choices[0].i, d.def);
+});
+
+test('fast-forward stops before a life decision', () => {
+  const g = G.createGame(42);
+  for (const s of g.sched) s.event = false;
+  const r = g.sched.find(s => s.choice).r;
+  g.ff({ sav: 1 });
+  assert.ok(g.round <= r);
+  if (g.round === r) assert.ok(g.pending);
+});
+
+test('a decision can be put on the credit card instead of selling', () => {
+  const g = G.createGame(42);
+  const r = g.sched.find(s => s.choice).r;
+  while (g.round < r) g.step({ nifty: 1 });
+  const before = Object.assign({}, g.me.h), p = g.previewChoice(0);
+  const log = g.choose(0, 'card');
+  assert.strictEqual(log.sales.length, 0, 'nothing sold');
+  assert.deepStrictEqual(g.me.h, before);
+  assert.ok(Math.abs(g.me.debt - p.shortfall) < 1e-6);
+  g.step({ nifty: 1 });
+  assert.ok(Math.abs(g.history[g.history.length - 1].interest - p.shortfall * 0.36) < 1e-6);
+  assert.ok(g.me.stats.cardYears === 1);
 });
