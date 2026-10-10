@@ -31,7 +31,7 @@ function forcedGame(r, x) {
   return g;
 }
 
-test('forced sale order: savings, then FD with 1% penalty; PPF locked before 2020', () => {
+test('forced sale order: savings, then FD with 10% penalty; PPF locked before 2020', () => {
   const g = forcedGame(3, -6);
   g.step({ sav: 1, fd: 1, ppf: 1, gold: 1 });
   g.step({ sav: 1, fd: 1, ppf: 1, gold: 1 });
@@ -40,7 +40,7 @@ test('forced sale order: savings, then FD with 1% penalty; PPF locked before 202
   assert.deepStrictEqual(sales.slice(0, 3), ['sav', 'fd', 'gold']);
   assert.ok(!sales.includes('ppf'), 'PPF must stay locked');
   const fdSale = g.me.log.sales.find(s => s.k === 'fd');
-  assert.ok(Math.abs(fdSale.pen - fdSale.amt * 0.01) < 1e-6);
+  assert.ok(Math.abs(fdSale.pen - fdSale.amt * 0.10) < 1e-6);
   assert.ok(g.me.h.ppf > 0);
   assert.ok(g.me.debt > 0, 'shortfall goes to credit card');
 });
@@ -121,7 +121,7 @@ test('inr formatting', () => {
   assert.strictEqual(G.inr(12300000), '₹1.23 Cr');
 });
 
-test('selling: proceeds join the cash pool, FD pays 1%, PPF locked until it unlocks', () => {
+test('selling: proceeds join the cash pool, FD pays 10%, PPF locked until it unlocks', () => {
   const g = G.createGame(3);
   for (const s of g.sched) s.life = null;
   g.step({ nifty: 1, fd: 1, ppf: 1 });
@@ -130,9 +130,9 @@ test('selling: proceeds join the cash pool, FD pays 1%, PPF locked until it unlo
   assert.ok(Math.abs(x.amt - nifty0 / 2) < 1e-6 && x.pen === 0);
   assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 - x.tax)) < 1e-6);   // minus 10% tax on the profit part
   const y = g.sell('fd', 1);
-  assert.ok(Math.abs(y.pen - fd0 * 0.01) < 1e-6);
+  assert.ok(Math.abs(y.pen - fd0 * 0.10) < 1e-6);
   assert.strictEqual(g.me.h.fd, 0);
-  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 - x.tax + fd0 * 0.99)) < 1e-6);
+  assert.ok(Math.abs(g.me.cash - (cash0 + nifty0 / 2 - x.tax + fd0 * 0.90)) < 1e-6);
   assert.strictEqual(g.sell('ppf', 1), null, 'PPF is locked');
   assert.strictEqual(g.canSell('crypto'), false);
   const before = g.me.cash;

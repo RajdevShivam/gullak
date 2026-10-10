@@ -101,24 +101,37 @@
     ['SIP Aunty', '“Selling the index? At these prices? Hai Ram.”'],
     ['Arvind on TV', '“Cash is king! Raise cash NOW!”'],
   ];
+  let payTimer = null, payLeft = 0;
+  const PAY_SECONDS = 15;
+  function tickPay() {
+    payLeft--;
+    const el = $('payClock'); if (el) { el.textContent = payLeft + 's'; el.parentNode.classList.toggle('hurry', payLeft <= 5); }
+    if (payLeft <= 0) {
+      clearInterval(payTimer); payTimer = null;
+      if (G.owed() > 0) { G.payCard(); sad(); }
+      closePayup();
+    }
+  }
   function showPayup(flash) {
+    if (!payTimer) { payLeft = PAY_SECONDS; payTimer = setInterval(tickPay, 1000); }
     const owe = G.owed(), s = G.current(), c = G.choices.find(x => x.r === G.round), l = G.me.log, p = G.me;
     const why = c ? `${c.t}: ${c.label}` : s.life ? s.life.t : 'This year’s bills';
     const hk = HECKLE[(G.round + l.sales.length) % HECKLE.length];
     const rows = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => {
-      const k = a.k, h = p.h[k], mult = k === 'fd' ? 0.99 : 1, sell = Math.min(h, owe / mult);
+      const k = a.k, h = p.h[k], mult = k === 'fd' ? 1 - window.Gullak.FD_PENALTY : 1, sell = Math.min(h, owe / mult);
       const pnl = sell - p.contrib[k] * sell / h, locked = !G.canPayWith(k);
       const tax = window.Gullak.TAXED.includes(k) && pnl > 0 ? pnl * window.Gullak.GAINS_TAX : 0;
       return `<div class="payrow${locked ? ' locked' : ''}"><div class="pr-name"><span class="code">${CODE[k]}</span><b>${esc(a.n)}</b>
           <small>worth ${inr(h)} · you put in ${inr(p.contrib[k])}</small></div>
         <div class="pr-hit">${locked ? '<span class="mut">Locked until Year 16</span>'
           : pnl < -0.5 ? `<span class="negc">Locks in a ${inr(-pnl)} loss</span>` : pnl > 0.5 ? `<span class="pos">Cashes ${inr(pnl)} of profit</span>${tax > 0.5 ? `<small class="negc">…and pays ${inr(tax)} tax on it</small>` : ''}` : '<span class="mut">No gain, no loss</span>'}
-          ${k === 'fd' && !locked ? '<small>1% penalty for breaking it</small>' : ''}${sell >= h - 0.5 && !locked ? '<small>This empties it</small>' : ''}</div>
+          ${k === 'fd' && !locked ? '<small>10% penalty for breaking it early</small>' : ''}${sell >= h - 0.5 && !locked ? '<small>This empties it</small>' : ''}</div>
         <button class="btn sell" data-pay="${k}" ${locked ? 'disabled' : ''}>Sell ${inr(sell)}</button></div>`;
     }).join('');
     $('payupSheet').className = 'sheet payup' + (flash ? ' loss' : '');
     $('payupSheet').innerHTML = `<div class="kicker">Year ${G.round + 1} · ${esc(why)}</div>
       <h2><span class="negc mono">${inr(owe)}</span> is due. Now.</h2>
+      <p class="clock">Decide in <b id="payClock">${payLeft}s</b> or it goes on the credit card.</p>
       <p class="sub">This year’s savings are gone. Pick what to sell, or swipe the card. Nothing else happens until this is paid.</p>
       ${flash ? `<p class="flash">${flash}</p>` : ''}
       <p class="heckle"><b>${hk[0]}:</b> ${hk[1]}</p>
@@ -133,7 +146,7 @@
     });
     $('payCard').onclick = () => { G.payCard(); sad(); closePayup(); };
   }
-  function closePayup() { $('payup').hidden = true; renderTop(); renderPage(); renderJars(); window.scrollTo(0, 0); }
+  function closePayup() { if (payTimer) { clearInterval(payTimer); payTimer = null; } $('payup').hidden = true; renderTop(); renderPage(); renderJars(); window.scrollTo(0, 0); }
 
   function renderTop() {
     const nw = G.netWorth();
@@ -354,7 +367,7 @@
             if (tipKey(r) === a.k) notes += tipSlip(r);
           }
           notes += vs.filter(q => q.k === a.k).map(quoteHTML).join('');
-          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>1% penalty</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
+          const sell = hold > 0.5 ? (G.canSell(a.k) ? `<div class="sells"><button class="sellbtn" data-sell="${a.k}" data-f="0.5">Sell half</button><button class="sellbtn" data-sell="${a.k}" data-f="1">Sell all</button>${a.k === 'fd' ? '<small>10% penalty</small>' : ''}</div>` : `<div class="sells"><small>locked — can’t sell yet</small></div>`) : '';
           return `<div class="asset ${on ? '' : 'off'}"><div class="ico" aria-hidden="true">${CODE[a.k]}</div>
             <div><div class="nm" title="${esc(a.f)}">${a.n} ${lock}</div><div class="why">${esc(a.f)}</div></div>
             <div><div class="amt" id="amt-${a.k}">—</div><div class="hold">has ${inr(hold)}</div></div>
@@ -407,7 +420,7 @@
     for (const k of order) {
       if (need <= 0) break;
       const avail = G.me.h[k]; if (avail <= 0.5) continue;
-      const mult = k === 'fd' ? 0.99 : 1, sell = Math.min(avail, need / mult);
+      const mult = k === 'fd' ? 1 - window.Gullak.FD_PENALTY : 1, sell = Math.min(avail, need / mult);
       out.push({ k, sell }); need -= sell * mult;
     }
     return { out, left: Math.max(0, need) };

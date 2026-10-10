@@ -17,7 +17,7 @@ Inspired by NGPF's [Build Your Stax](https://buildyourstax.com/), re-imagined fo
   | Option | What it is |
   |---|---|
   | Savings account | Safe, low return |
-  | Fixed deposit | Safe, small penalty if you break it early |
+  | Fixed deposit | Safe, but breaking it early costs 10% |
   | PPF | Government savings scheme, locked for 15 years |
   | Nifty 50 index fund | Follows the market |
   | Gold | Tends to rise in a crisis |

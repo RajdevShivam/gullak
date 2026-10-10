@@ -377,3 +377,6 @@ body.ouch::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3
 .sheet.payup .btn.card{margin-top:14px;background:#9F2F2D;color:#fff;text-align:left}
 .sheet.payup .btn.card small{display:block;font:400 12.5px var(--serif);opacity:.85}
 @media (max-width:560px){.payrow{grid-template-columns:1fr auto}.payrow .pr-hit{grid-column:1/-1;order:3}}
+.sheet.payup .clock{font:500 14px var(--mono);color:var(--mut);margin:0 0 6px}
+.sheet.payup .clock b{color:#9F2F2D;font-size:18px}
+.sheet.payup .clock.hurry{color:#9F2F2D;animation:shake2 .5s infinite}

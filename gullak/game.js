@@ -21,11 +21,11 @@
   const R = 20, START_YEAR = 2005, START_AGE = 25;
   const CRYPTO_R = 9;   // 2014
   const PPF_R = 15;     // 2020 — 15 years after 2005
-  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.36, FD_PENALTY = 0.01, GAINS_TAX = 0.10;   // cards charge ~3% a month
+  const START_INCOME = 120000, RAISE = 0.08, PROMO = 0.2, DEBT_RATE = 0.36, FD_PENALTY = 0.10, GAINS_TAX = 0.10;   // cards charge ~3% a month
 
   const ASSETS = [
     { k: 'sav', n: 'Savings account', i: '🏦', c: '#7b9cc4', f: 'Your bank account. Safe, ~3% a year, take it out anytime.' },
-    { k: 'fd', n: 'Fixed Deposit', i: '📜', c: '#8aa95c', f: 'Lend to the bank for a while. ~7% a year; small 1% penalty if broken early.' },
+    { k: 'fd', n: 'Fixed Deposit', i: '📜', c: '#8aa95c', f: 'Lend to the bank for a while. ~7% a year, but breaking it early costs 10%.' },
     { k: 'ppf', n: 'PPF', i: '🔒', c: '#2f6b4f', f: 'Govt savings scheme. ~7.5%, tax-free, locked for 15 years (till Year 16).' },
     { k: 'nifty', n: 'Nifty 50 index fund', i: '📈', c: '#c4553a', f: "A tiny slice of India's 50 biggest companies. Grows over time, some years hurt." },
     { k: 'gold', n: 'Gold', i: '🪙', c: '#e3a33b', f: 'What Nani trusts. Often shines when stocks panic.' },
@@ -487,7 +487,7 @@
     return out.slice(0, 3);
   }
 
-  const api = { GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
+  const api = { FD_PENALTY, GAINS_TAX, TAXED, STOCKS, DEBT_RATE, R, START_YEAR, START_AGE, CRYPTO_R, PPF_R, START_INCOME, ASSETS, KEYS, NIFTY, GOLD, CRYPTO, EVENT_YEARS, NEWS, LIFE, DILEMMAS, LOTTERY, LOTTO_ASKS,
     mulberry32, makeRng, buildSchedule, createGame, normAlloc, enabled, netWorth, inr, chapter, takeaways };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Gullak = api;
