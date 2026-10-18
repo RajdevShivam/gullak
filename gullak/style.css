@@ -4,7 +4,7 @@
 :root{
   --paper:#ffffff; --paper2:#f9fafb; --ink:#111827; --mut:#6b7280; --rule:#e5e7eb; --hair:#d1d5db;
   --red:#2563eb; --red-d:#1d4ed8; --on-red:#ffffff;   /* the one accent (name kept from the ledger theme): site blue */
-  --gain:#15803d; --gain-bg:#ecfdf5; --loss:#dc2626; --loss-bg:#fef2f2; --warn-bg:#fffbeb; --warn:#d97706;
+  --gain:#15803d; --gain-bg:#ecfdf5; --loss:#b91c1c; --loss-bg:#fef2f2; --warn-bg:#fffbeb; --warn:#d97706;
   --coin:#ffffff; --jar-in:#e5e7eb; --scrim:rgba(17,24,39,.55);
   --c-sav:#d1d5db; --c-fd:#9ca3af; --c-ppf:#6b7280; --c-nifty:#2563eb; --c-gold:#d97706; --c-hot:#7c3aed; --c-hot2:#db2777; --c-hot3:#dc2626; --c-crypto:#dc2626;
   --hand:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; --serif:var(--hand); --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
