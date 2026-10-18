@@ -6,11 +6,11 @@
   const A = k => ASSETS.find(a => a.k === k);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const pct = x => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x * 100).toFixed(Math.abs(x) < 0.1 && x !== 0 ? 1 : 0) + '%';
-  const RIVAL_COLORS = { me: '#9E2B25', fd: '#2B2A26', sip: '#9A9284' };
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   // Ledger theme: assets are ink shades + a short code instead of emoji
   const DR = (window.Gullak.DEBT_RATE || 0.36), DRT = Math.round(DR * 100) + '%';
   const CODE = { sav: 'SB', fd: 'FD', ppf: 'PF', nifty: 'N50', gold: 'AU', hot: 'TA', hot2: 'TB', hot3: 'TC', crypto: 'RC' };
-  const COL = { sav: '#D6CDB9', fd: '#BCB29D', ppf: '#A09682', nifty: '#2B2A26', gold: '#857C6A', hot: '#625B4E', hot2: '#4A443A', hot3: '#9E2B25', crypto: '#9E2B25' };
+  const COL = { sav: 'var(--c-sav)', fd: 'var(--c-fd)', ppf: 'var(--c-ppf)', nifty: 'var(--c-nifty)', gold: 'var(--c-gold)', hot: 'var(--c-hot)', hot2: 'var(--c-hot2)', hot3: 'var(--c-hot3)', crypto: 'var(--c-crypto)' };
 
   // ---------- Seed ----------
   const params = new URLSearchParams(location.search);
@@ -27,20 +27,20 @@
     let coins = '';
     for (let row = 0; row < 12; row++) for (let c = 0; c < 8; c++) {
       const x = 30 + c * 20 + (row % 2) * 10, y = 186 - row * 13;
-      coins += `<ellipse cx="${x}" cy="${y}" rx="10" ry="5.5" fill="#F4EDDC" stroke="#2B2A26" stroke-width="1.1"/>`;
+      coins += `<ellipse cx="${x}" cy="${y}" rx="10" ry="5.5" fill="var(--coin)" stroke="var(--ink)" stroke-width="1.1"/>`;
     }
     return `<svg viewBox="0 0 200 210" aria-hidden="true">
       <defs><clipPath id="${id}c"><circle cx="100" cy="118" r="69"/></clipPath></defs>
-      <ellipse cx="100" cy="198" rx="58" ry="6" fill="#2B2A26" opacity=".12"/>
-      <circle cx="100" cy="118" r="72" fill="#9E2B25"/>
+      <ellipse cx="100" cy="198" rx="58" ry="6" fill="var(--ink)" opacity=".12"/>
+      <circle cx="100" cy="118" r="72" fill="var(--red)"/>
       <g clip-path="url(#${id}c)"><g class="coins" style="transform:translateY(${(1 - lv) * 150}px)">
-        <rect x="20" y="40" width="160" height="160" fill="#E9DFC8"/>${coins}</g></g>
-      <circle cx="100" cy="118" r="72" fill="none" stroke="#2B2A26" stroke-width="3"/>
-      <path d="M78 54 Q80 36 100 34 Q120 36 122 54 Z" fill="#7A1F1A" stroke="#2B2A26" stroke-width="3" stroke-linejoin="round"/>
-      <ellipse cx="100" cy="34" rx="15" ry="5" fill="#9E2B25" stroke="#2B2A26" stroke-width="3"/>
-      <rect x="80" y="66" width="40" height="7" rx="2" fill="#2B2A26"/>
-      <ellipse class="slotcoin" cx="100" cy="62" rx="9" ry="3.5" fill="#F4EDDC" stroke="#2B2A26" opacity="0"/>
-      <path class="crackline" d="M104 76 L112 98 L94 118 L114 140 L96 162 L104 188" fill="none" stroke="#2B2A26" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+        <rect x="20" y="40" width="160" height="160" fill="var(--jar-in)"/>${coins}</g></g>
+      <circle cx="100" cy="118" r="72" fill="none" stroke="var(--ink)" stroke-width="3"/>
+      <path d="M78 54 Q80 36 100 34 Q120 36 122 54 Z" fill="var(--red-d)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="100" cy="34" rx="15" ry="5" fill="var(--red)" stroke="var(--ink)" stroke-width="3"/>
+      <rect x="80" y="66" width="40" height="7" rx="2" fill="var(--ink)"/>
+      <ellipse class="slotcoin" cx="100" cy="62" rx="9" ry="3.5" fill="var(--coin)" stroke="var(--ink)" opacity="0"/>
+      <path class="crackline" d="M104 76 L112 98 L94 118 L114 140 L96 162 L104 188" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
     </svg>`;
   }
   function mountPot(el, nw) { el.classList.add('pot'); el.innerHTML = potSVG(level(nw)); glow(el, nw); }
@@ -164,7 +164,7 @@
     $('taunt').innerHTML = voices().filter(q => !q.k).slice(0, 1).map(quoteHTML).join('');
     const p = G.me, tot = KEYS.reduce((a, k) => a + p.h[k], 0) + p.debt;
     let bars = ASSETS.filter(a => p.h[a.k] > 0.5).map(a => `<div style="flex-grow:${p.h[a.k] / tot};background:${COL[a.k]}" title="${a.n}: ${inr(p.h[a.k])}"></div>`).join('');
-    if (p.debt > 0.5) bars += `<div style="flex-grow:${p.debt / tot};background:#9F2F2D;opacity:.6" title="Credit-card debt: ${inr(p.debt)}"></div>`;
+    if (p.debt > 0.5) bars += `<div style="flex-grow:${p.debt / tot};background:var(--loss);opacity:.6" title="Credit-card debt: ${inr(p.debt)}"></div>`;
     $('inside').innerHTML = bars;
     $('inside').title = 'What’s inside the gullak';
   }
@@ -612,17 +612,18 @@
     if (!window.Chart) return;
     try {
       if (chart) chart.destroy();
+      const C = { ink: cssVar('--ink'), paper: cssVar('--paper'), mut: cssVar('--mut'), rule: cssVar('--rule'), red: cssVar('--red') };
       const ds = (label, data, c, w) => ({ label, data: [0].concat(data), borderColor: c, backgroundColor: c, borderWidth: w, pointRadius: 0, pointHoverRadius: 5, tension: .25, fill: false });
       chart = new Chart($('chart'), {
         type: 'line',
-        data: { labels: ['Start'].concat(G.sched.map(s => String(s.y))), datasets: [ds(NAME, G.me.nwHist, RIVAL_COLORS.me, 3.5), Object.assign(ds('FD Uncle', G.fd.nwHist, RIVAL_COLORS.fd, 1.5), { borderDash: [5, 4] }), ds('SIP Aunty', G.sip.nwHist, RIVAL_COLORS.sip, 2)] },
+        data: { labels: ['Start'].concat(G.sched.map(s => String(s.y))), datasets: [ds(NAME, G.me.nwHist, C.red, 3.5), Object.assign(ds('FD Uncle', G.fd.nwHist, C.ink, 1.5), { borderDash: [5, 4] }), ds('SIP Aunty', G.sip.nwHist, C.mut, 2)] },
         options: {
           responsive: true, maintainAspectRatio: false, animation: { duration: 1200 }, interaction: { mode: 'index', intersect: false },
-          plugins: { legend: { labels: { color: '#2B2A26', font: { family: 'Newsreader', size: 14 }, usePointStyle: true, pointStyle: 'line' } },
-            tooltip: { backgroundColor: '#2B2A26', cornerRadius: 3, titleFont: { family: 'IBM Plex Mono' }, bodyFont: { family: 'IBM Plex Mono' }, callbacks: { label: c => ' ' + c.dataset.label + ': ' + inr(c.parsed.y) } } },
+          plugins: { legend: { labels: { color: C.ink, font: { family: 'system-ui', size: 13 }, usePointStyle: true, pointStyle: 'line' } },
+            tooltip: { backgroundColor: C.ink, titleColor: C.paper, bodyColor: C.paper, cornerRadius: 6, titleFont: { family: 'ui-monospace' }, bodyFont: { family: 'ui-monospace' }, callbacks: { label: c => ' ' + c.dataset.label + ': ' + inr(c.parsed.y) } } },
           scales: {
-            x: { ticks: { color: '#787268', maxRotation: 0, autoSkipPadding: 12, font: { family: 'IBM Plex Mono', size: 11 } }, grid: { display: false } },
-            y: { ticks: { color: '#787268', callback: v => inr(v), font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#E2D7BF' }, border: { display: false } },
+            x: { ticks: { color: C.mut, maxRotation: 0, autoSkipPadding: 12, font: { family: 'ui-monospace', size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: C.mut, callback: v => inr(v), font: { family: 'ui-monospace', size: 11 } }, grid: { color: C.rule }, border: { display: false } },
           },
         },
       });

@@ -64,3 +64,6 @@ White `#FFFFFF`, ink `#0B0B0B`, grey `#7A7A7A`, rules `#E2E2E2`, gain `#00873E`,
 - **Chart:** ink and grey lines, red for the player, dashed FD Uncle, no fill.
 
 Screenshots of the old build are in `bahikhata/before/`.
+
+## Site theme (current)
+`gullak/` now uses the shivamrajdev.com palette instead of the ledger theme: white / near-black surfaces, the site blue accent, system fonts, 8-12px radii, and a slim site bar with a theme toggle. It reads the site's saved `theme` from localStorage (else the OS setting) and sets `html[data-theme]`. The old ledger look is in git history (before this change).
