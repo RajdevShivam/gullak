@@ -5,14 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gullak</title>
 <meta name="description" content="A storybook investing game: twenty years of one life, one clay piggy bank.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,800;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  // Follow the site's saved theme (same localStorage key as shivamrajdev.com), else the OS setting.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('theme'); } catch (e) { /* storage blocked */ }
+    if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
+<header class="sitebar">
+  <a class="sb-home" href="/">Order in Chaos</a>
+  <nav aria-label="Site">
+    <a href="/posts">Posts</a><a href="/news">News</a><a href="/about">About</a>
+    <button class="themebtn" id="themeBtn" type="button" aria-label="Toggle light and dark theme"></button>
+  </nav>
+</header>
 
 <!-- Title page -->
 <section id="title" class="screen title">
@@ -95,6 +108,19 @@
 
 <footer class="foot">Market numbers are approximate, based on real Indian market history. A storybook, not financial advice.</footer>
 
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('themeBtn');
+    function label() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light mode' : 'Dark mode'; }
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) { /* storage blocked */ }
+      label();
+    });
+    label();
+  })();
+</script>
 <script src="game.js"></script>
 <script src="ui.js"></script>
 </body>
